@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import backgroundSvg from "../../assets/background.svg";
 import image1 from "../../assets/image1.png";
+import LoginPage from "../auth/LoginPage";
 import "./HomePage.css";
 
 const HomePage = () => {
+  const [showLogin, setShowLogin] = useState(false);
+
   return (
     <div
       className="home-container"
@@ -13,7 +16,9 @@ const HomePage = () => {
       <nav className="home-nav">
         <button className="nav-btn">Home</button>
         <button className="nav-btn">About</button>
-        <button className="nav-btn">Login</button>
+        <button className="nav-btn" onClick={() => setShowLogin(true)}>
+          Login
+        </button>
       </nav>
 
       {/* Headings */}
@@ -24,6 +29,11 @@ const HomePage = () => {
       <div className="home-image-wrapper">
         <img src={image1} alt="illustration" className="home-image" />
       </div>
+
+      {/* Login Modal */}
+      {showLogin && (
+        <LoginPage onClose={() => setShowLogin(false)} />
+      )}
     </div>
   );
 };
