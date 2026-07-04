@@ -23,12 +23,12 @@ const MemberDashboard = () => {
   const memberRoll = "22BCS108";
   
   const [personalPayments, setPersonalPayments] = useState([
-    { id: 1, txId: 'TXN8274920491', amount: 500, date: '2026-06-15', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (June)', status: 'Verified' },
-    { id: 2, txId: 'TXN1938492048', amount: 500, date: '2026-05-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (May)', status: 'Verified' },
-    { id: 3, txId: 'TXN8492019385', amount: 500, date: '2026-04-08', mode: 'UPI / Paytm', purpose: 'Monthly Contribution (April)', status: 'Verified' },
-    { id: 4, txId: 'TXN0293847291', amount: 500, date: '2026-03-12', mode: 'Cash', purpose: 'Monthly Contribution (March)', status: 'Verified' },
-    { id: 5, txId: 'TXN7392840193', amount: 500, date: '2026-02-05', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (February)', status: 'Verified' },
-    { id: 6, txId: 'TXN1039482710', amount: 500, date: '2026-01-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (January)', status: 'Verified' }
+    { id: 1, txId: 'TXN8274920491', amount: 500, date: '2026-06-15', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution', paymentMonth: 'Jun', status: 'Verified' },
+    { id: 2, txId: 'TXN1938492048', amount: 500, date: '2026-05-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution', paymentMonth: 'May', status: 'Verified' },
+    { id: 3, txId: 'TXN8492019385', amount: 500, date: '2026-04-08', mode: 'UPI / Paytm', purpose: 'Monthly Contribution', paymentMonth: 'Apr', status: 'Verified' },
+    { id: 4, txId: 'TXN0293847291', amount: 500, date: '2026-03-12', mode: 'Cash', purpose: 'Monthly Contribution', paymentMonth: 'Mar', status: 'Verified' },
+    { id: 5, txId: 'TXN7392840193', amount: 500, date: '2026-02-05', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution', paymentMonth: 'Feb', status: 'Verified' },
+    { id: 6, txId: 'TXN1039482710', amount: 500, date: '2026-01-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution', paymentMonth: 'Jan', status: 'Verified' }
   ]);
 
   const [announcements, setAnnouncements] = useState([
@@ -62,7 +62,7 @@ const MemberDashboard = () => {
       rollNo: memberRoll,
       amount: pay.amount,
       date: pay.date,
-      purpose: pay.purpose,
+      purpose: pay.purpose + (pay.paymentMonth ? ` (${pay.paymentMonth})` : ''),
       txId: pay.txId,
       paymentMode: pay.mode
     });
@@ -131,7 +131,7 @@ const MemberDashboard = () => {
           </div>
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: '700', lineHeight: 1.2 }}>StudentPortal</h3>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Roll No: 22BCS108</span>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Reg No: 22BCS108</span>
           </div>
         </div>
 
@@ -448,6 +448,52 @@ const MemberDashboard = () => {
               </div>
             </div>
 
+            {/* NEW MONTHLY GRID */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '600' }}>Monthly Tracking Grid</h3>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(month => {
+                  const isPaid = personalPayments.some(p => p.paymentMonth === month);
+                  const isPastOrCurrent = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].includes(month); // Current month is Jun
+                  
+                  let bgColor = 'var(--bg-app)';
+                  let color = 'var(--text-muted)';
+                  let border = '1px solid var(--border-color)';
+                  
+                  if (isPaid) {
+                    bgColor = 'var(--success)';
+                    color = '#fff';
+                    border = '1px solid var(--success)';
+                  } else if (isPastOrCurrent) {
+                    bgColor = 'rgba(239, 68, 68, 0.1)';
+                    color = 'var(--danger)';
+                    border = '1px dashed var(--danger)';
+                  }
+
+                  return (
+                    <div key={month} style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: '8px',
+                      background: bgColor,
+                      color: color,
+                      border: border,
+                      fontWeight: '600',
+                      fontSize: '0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      minWidth: '80px',
+                      justifyContent: 'center'
+                    }}>
+                      {month}
+                      {isPaid && <span>✓</span>}
+                      {!isPaid && isPastOrCurrent && <span>!</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div style={{ background: 'rgba(37,99,235,0.05)', padding: '1rem', borderRadius: '10px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               <span style={{ fontSize: '1.25rem' }}>💡</span>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: '1.4' }}>
@@ -470,6 +516,7 @@ const MemberDashboard = () => {
                     <th>Transaction Reference</th>
                     <th>Payment Date</th>
                     <th>Payment Category</th>
+                    <th>Month For</th>
                     <th>Method</th>
                     <th>Amount</th>
                     <th>Status</th>
@@ -482,6 +529,11 @@ const MemberDashboard = () => {
                       <td style={{ fontFamily: 'monospace', fontWeight: '600' }}>{p.txId}</td>
                       <td>{p.date}</td>
                       <td>{p.purpose}</td>
+                      <td>
+                        {p.paymentMonth ? (
+                          <span className="badge badge-info" style={{ background: 'rgba(37,99,235,0.1)', color: 'var(--primary-blue)' }}>{p.paymentMonth}</span>
+                        ) : '-'}
+                      </td>
                       <td>{p.mode}</td>
                       <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {p.amount}</td>
                       <td>

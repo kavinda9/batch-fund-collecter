@@ -24,14 +24,14 @@ const AdminDashboard = () => {
 
   // Mock data states
   const [students, setStudents] = useState([
-    { id: 1, name: 'Rahul Verma', roll: '22BCS108', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-15' },
-    { id: 2, name: 'Amit Kumar', roll: '22BCS012', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-20' },
-    { id: 3, name: 'Priyanshu Sharma', roll: '22BCS015', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-10' },
-    { id: 4, name: 'Sneha Patel', roll: '22BCS144', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-28' },
-    { id: 5, name: 'Divya Teja', roll: '22BCS041', amountPaid: 0, dues: 3000, status: 'Unpaid', date: '-' },
-    { id: 6, name: 'Rohan Das', roll: '22BCS092', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-14' },
-    { id: 7, name: 'Anjali Gupta', roll: '22BCS021', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-19' },
-    { id: 8, name: 'Tarun Sen', roll: '22BCS120', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-25' }
+    { id: 1, name: 'Rahul Verma', roll: '22BCS108', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-15', monthsPaid: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+    { id: 2, name: 'Amit Kumar', roll: '22BCS012', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-20', monthsPaid: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+    { id: 3, name: 'Priyanshu Sharma', roll: '22BCS015', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-10', monthsPaid: ['Jan', 'Feb', 'Mar'] },
+    { id: 4, name: 'Sneha Patel', roll: '22BCS144', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-28', monthsPaid: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+    { id: 5, name: 'Divya Teja', roll: '22BCS041', amountPaid: 0, dues: 3000, status: 'Unpaid', date: '-', monthsPaid: [] },
+    { id: 6, name: 'Rohan Das', roll: '22BCS092', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-14', monthsPaid: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+    { id: 7, name: 'Anjali Gupta', roll: '22BCS021', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-19', monthsPaid: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
+    { id: 8, name: 'Tarun Sen', roll: '22BCS120', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-25', monthsPaid: ['Jan', 'Feb', 'Mar'] }
   ]);
 
   const [expenses, setExpenses] = useState([
@@ -67,11 +67,12 @@ const AdminDashboard = () => {
         amountPaid: Number(formData.amount),
         dues: Math.max(0, 3000 - Number(formData.amount)),
         status: Number(formData.amount) >= 3000 ? 'Paid' : 'Partially Paid',
-        date: formData.date
+        date: formData.date,
+        monthsPaid: formData.purpose === 'Monthly Contribution' ? [formData.paymentMonth] : []
       };
       setStudents([newStudentPay, ...students]);
       setActivities([
-        { id: Date.now(), type: 'payment', text: `${formData.studentName} paid Rs. ${formData.amount} for ${formData.purpose}`, time: formData.date },
+        { id: Date.now(), type: 'payment', text: `${formData.studentName} paid Rs. ${formData.amount} for ${formData.purpose}${formData.purpose === 'Monthly Contribution' ? ' (' + formData.paymentMonth + ')' : ''}`, time: formData.date },
         ...activities
       ]);
     } else if (modalType === 'add-expense') {
@@ -401,7 +402,7 @@ const AdminDashboard = () => {
                     <thead>
                       <tr>
                         <th>Student</th>
-                        <th>Roll No</th>
+                        <th>Reg No</th>
                         <th>Contributed</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -478,7 +479,8 @@ const AdminDashboard = () => {
                 <thead>
                   <tr>
                     <th>Student Name</th>
-                    <th>Roll Number</th>
+                    <th>Reg No</th>
+                    <th>Months Paid</th>
                     <th>Contributed</th>
                     <th>Dues Outstanding</th>
                     <th>Payment Date</th>
@@ -491,6 +493,21 @@ const AdminDashboard = () => {
                     <tr key={s.id}>
                       <td style={{ fontWeight: '600' }}>{s.name}</td>
                       <td>{s.roll}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                          {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(m => (
+                            <span key={m} style={{ 
+                              fontSize: '0.65rem', 
+                              padding: '0.15rem 0.3rem', 
+                              borderRadius: '4px', 
+                              background: s.monthsPaid?.includes(m) ? 'var(--success)' : 'var(--border-color)', 
+                              color: s.monthsPaid?.includes(m) ? '#fff' : 'var(--text-muted)' 
+                            }}>
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
                       <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {s.amountPaid.toLocaleString()}</td>
                       <td style={{ fontWeight: '700', color: s.dues > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>Rs. {s.dues.toLocaleString()}</td>
                       <td>{s.date}</td>
@@ -626,7 +643,7 @@ const AdminDashboard = () => {
                   <tr>
                     <th>Ref ID</th>
                     <th>Contributor</th>
-                    <th>Roll No</th>
+                    <th>Reg No</th>
                     <th>Type/Purpose</th>
                     <th>Mode</th>
                     <th>Received Date</th>

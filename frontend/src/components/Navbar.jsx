@@ -225,7 +225,7 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
                 {userRole === 'Admin' ? 'Prof. Sharma' : 'Rahul Verma'}
               </span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                {userRole === 'Admin' ? 'Batch Coordinator' : 'Roll No: 22BCS108'}
+                {userRole === 'Admin' ? 'Batch Coordinator' : 'Reg No: 22BCS108'}
               </span>
             </div>
           </div>

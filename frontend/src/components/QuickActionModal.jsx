@@ -7,6 +7,7 @@ export const QuickActionModal = ({ type, onClose, onSubmit, data = {} }) => {
     rollNo: '',
     amount: '',
     purpose: 'Monthly Contribution',
+    paymentMonth: 'Jun',
     date: new Date().toISOString().substring(0, 10),
     paymentMode: 'UPI',
     itemName: '',
@@ -55,7 +56,7 @@ export const QuickActionModal = ({ type, onClose, onSubmit, data = {} }) => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
-                  <label className="form-label">Roll Number</label>
+                  <label className="form-label">Reg No</label>
                   <input required type="text" name="rollNo" value={formData.rollNo} onChange={handleChange} className="form-input" placeholder="e.g. 22BCS015" />
                 </div>
                 <div className="form-group">
@@ -83,9 +84,30 @@ export const QuickActionModal = ({ type, onClose, onSubmit, data = {} }) => {
                   </select>
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Payment Date</label>
-                <input required type="date" name="date" value={formData.date} onChange={handleChange} className="form-input" />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Payment Date</label>
+                  <input required type="date" name="date" value={formData.date} onChange={handleChange} className="form-input" />
+                </div>
+                {formData.purpose === 'Monthly Contribution' && (
+                  <div className="form-group">
+                    <label className="form-label">Month For</label>
+                    <select name="paymentMonth" value={formData.paymentMonth} onChange={handleChange} className="form-input">
+                      <option value="Jan">January</option>
+                      <option value="Feb">February</option>
+                      <option value="Mar">March</option>
+                      <option value="Apr">April</option>
+                      <option value="May">May</option>
+                      <option value="Jun">June</option>
+                      <option value="Jul">July</option>
+                      <option value="Aug">August</option>
+                      <option value="Sep">September</option>
+                      <option value="Oct">October</option>
+                      <option value="Nov">November</option>
+                      <option value="Dec">December</option>
+                    </select>
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
