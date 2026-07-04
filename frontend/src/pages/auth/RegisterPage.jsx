@@ -78,6 +78,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Enter your full name"
               value={formData.name}
               onChange={handleChange}
+              style={{
+                backgroundColor: formData.name ? "#5ced73" : undefined,
+                color: formData.name ? "#1a1a2e" : undefined
+              }}
             />
             {errors.name && <span className="error">{errors.name}</span>}
           </div>
@@ -91,6 +95,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
+              style={{
+                backgroundColor: formData.email ? "#5ced73" : undefined,
+                color: formData.email ? "#1a1a2e" : undefined
+              }}
             />
             {errors.email && <span className="error">{errors.email}</span>}
           </div>
@@ -104,6 +112,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Enter your registration number"
               value={formData.regNumber}
               onChange={handleChange}
+              style={{
+                backgroundColor: formData.regNumber ? "#5ced73" : undefined,
+                color: formData.regNumber ? "#1a1a2e" : undefined
+              }}
             />
             {errors.regNumber && (
               <span className="error">{errors.regNumber}</span>
@@ -119,6 +131,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="e.g. BSc Computer Science"
               value={formData.degreeProgram}
               onChange={handleChange}
+              style={{
+                backgroundColor: formData.degreeProgram ? "#5ced73" : undefined,
+                color: formData.degreeProgram ? "#1a1a2e" : undefined
+              }}
             />
             {errors.degreeProgram && (
               <span className="error">{errors.degreeProgram}</span>
@@ -133,6 +149,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               value={formData.batch}
               onChange={handleChange}
               className={formData.batch === "" ? "select-placeholder" : ""}
+              style={{
+                backgroundColor: formData.batch ? "#5ced73" : undefined,
+                color: formData.batch ? "#1a1a2e" : undefined
+              }}
             >
               <option value="" disabled>
                 Select your year
@@ -155,6 +175,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               value={formData.contactNumber}
               onChange={handleChange}
               maxLength={10}
+              style={{
+                backgroundColor: formData.contactNumber ? "#5ced73" : undefined,
+                color: formData.contactNumber ? "#1a1a2e" : undefined
+              }}
             />
             {errors.contactNumber && (
               <span className="error">{errors.contactNumber}</span>
@@ -170,6 +194,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Minimum 8 characters"
               value={formData.password}
               onChange={handleChange}
+              style={{
+                backgroundColor: formData.password ? "#5ced73" : undefined,
+                color: formData.password ? "#1a1a2e" : undefined
+              }}
             />
             {errors.password && (
               <span className="error">{errors.password}</span>
@@ -185,6 +213,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Repeat your password"
               value={formData.reenterPassword}
               onChange={handleChange}
+              style={{
+                backgroundColor: formData.reenterPassword ? "#5ced73" : undefined,
+                color: formData.reenterPassword ? "#1a1a2e" : undefined
+              }}
             />
             {errors.reenterPassword && (
               <span className="error">{errors.reenterPassword}</span>

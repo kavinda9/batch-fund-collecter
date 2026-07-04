@@ -90,6 +90,22 @@
   color: #aaa;
 }
 
+/* Filled state & Autofill overrides */
+.input-group input:not(:placeholder-shown),
+.input-group select:not(.select-placeholder),
+.input-filled {
+  background-color: #5ced73 !important;
+  color: #1a1a2e !important;
+}
+
+.input-group input:-webkit-autofill,
+.input-group input:-webkit-autofill:hover, 
+.input-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1a1a2e !important;
+  -webkit-box-shadow: 0 0 0px 1000px #5ced73 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Error Messages */
 .error {
   font-size: 12px;

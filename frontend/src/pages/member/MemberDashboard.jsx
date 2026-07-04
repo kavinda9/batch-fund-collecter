@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  DashboardIcon, FundIcon, IncomeIcon, EventIcon, 
+  HomeIcon, DashboardIcon, FundIcon, IncomeIcon, EventIcon, 
   SettingsIcon, LogoutIcon, DownloadIcon, BellIcon,
   InfoIcon, CheckIcon, SpeakerIcon, CalendarIcon, UsersIcon
 } from '../../components/Icons';
@@ -80,6 +80,7 @@ const MemberDashboard = () => {
   const upcomingEventCount = memberEvents.length;
 
   const sidebarItems = [
+    { name: 'Home', icon: <HomeIcon /> },
     { name: 'Dashboard', icon: <DashboardIcon /> },
     { name: 'My Contributions', icon: <IncomeIcon /> },
     { name: 'Payment History', icon: <FundIcon /> },
@@ -143,7 +144,11 @@ const MemberDashboard = () => {
               <button
                 key={item.name}
                 onClick={() => {
-                  setActiveTab(item.name);
+                  if (item.name === 'Home') {
+                    navigate('/landing');
+                  } else {
+                    setActiveTab(item.name);
+                  }
                   setMobileSidebarOpen(false);
                 }}
                 style={{
