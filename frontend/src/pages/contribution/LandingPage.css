@@ -1,0 +1,278 @@
+/* Landing.css
+   Post-login landing page for regular users.
+   Palette intentionally echoes the green-accent / white / gradient-hero
+   language already used on the User Dashboard, so the two pages feel
+   like one product rather than two separate builds. */
+
+:root {
+    --landing-bg: #f6faf8;
+    --landing-surface: #ffffff;
+    --landing-border: #e1eae5;
+    --landing-text: #10241c;
+    --landing-text-muted: #5b6e66;
+
+    --landing-green-900: #0c4a6e;
+    --landing-green-700: #0369a1;
+    --landing-green-500: #0ea5e9;
+    --landing-green-300: #7dd3fc;
+
+    --landing-radius-lg: 20px;
+    --landing-radius-md: 14px;
+    --landing-shadow: 0 12px 30px rgba(18, 128, 92, 0.12);
+}
+
+.landing-page {
+    min-height: 100vh;
+    background: var(--landing-bg);
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: var(--landing-text);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------- Header ---------- */
+
+.landing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+}
+
+.landing-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.landing-brand-mark {
+    color: var(--landing-green-500);
+    font-size: 12px;
+}
+
+.landing-logout {
+    background: transparent;
+    border: 1px solid var(--landing-border);
+    color: var(--landing-text-muted);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.landing-logout:hover {
+    border-color: var(--landing-green-500);
+    color: var(--landing-green-700);
+}
+
+.landing-logout:focus-visible,
+.landing-cta:focus-visible {
+    outline: 2px solid var(--landing-green-500);
+    outline-offset: 2px;
+}
+
+/* ---------- Main ---------- */
+
+.landing-main {
+    flex: 1;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px 24px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+/* ---------- Hero ---------- */
+
+.landing-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--landing-radius-lg);
+    padding: 48px 40px;
+    background: linear-gradient(135deg,
+            var(--landing-green-900) 0%,
+            var(--landing-green-700) 45%,
+            var(--landing-green-500) 100%);
+    color: #ffffff;
+    box-shadow: var(--landing-shadow);
+    animation: landing-rise 0.5s ease both;
+}
+
+.landing-hero-glow {
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle,
+            rgba(255, 255, 255, 0.25) 0%,
+            rgba(255, 255, 255, 0) 70%);
+    pointer-events: none;
+}
+
+.landing-hero-line {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 70px;
+    opacity: 0.5;
+}
+
+.landing-eyebrow {
+    position: relative;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0 0 6px;
+}
+
+.landing-title {
+    position: relative;
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    font-size: clamp(28px, 4vw, 36px);
+    font-weight: 600;
+    margin: 0 0 12px;
+}
+
+.landing-subtitle {
+    position: relative;
+    font-size: 15px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.88);
+    max-width: 46ch;
+    margin: 0 0 28px;
+}
+
+.landing-cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    color: var(--landing-green-700);
+    border: none;
+    padding: 13px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.landing-cta-secondary {
+    background: transparent !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+.landing-cta-secondary:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 18px rgba(255, 255, 255, 0.08) !important;
+}
+
+.landing-cta-arrow {
+    transition: transform 0.15s ease;
+}
+
+.landing-cta:hover .landing-cta-arrow {
+    transform: translateX(3px);
+}
+
+/* ---------- Quick glance chips ---------- */
+
+.landing-glance {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.landing-chip {
+    background: var(--landing-surface);
+    border: 1px solid var(--landing-border);
+    border-radius: var(--landing-radius-md);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(18, 128, 92, 0.1);
+}
+
+.landing-chip-label {
+    font-size: 12.5px;
+    color: var(--landing-text-muted);
+}
+
+.landing-chip-value {
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--landing-text);
+}
+
+.landing-footnote {
+    font-size: 13px;
+    color: var(--landing-text-muted);
+    text-align: center;
+    margin: 0;
+}
+
+/* ---------- Motion & responsiveness ---------- */
+
+@keyframes landing-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-hero {
+        animation: none;
+    }
+
+    .landing-cta,
+    .landing-chip {
+        transition: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .landing-header {
+        padding: 16px 20px;
+    }
+
+    .landing-main {
+        padding: 16px 16px 48px;
+    }
+
+    .landing-hero {
+        padding: 32px 24px;
+    }
+
+    .landing-glance {
+        grid-template-columns: 1fr;
+    }
+}
