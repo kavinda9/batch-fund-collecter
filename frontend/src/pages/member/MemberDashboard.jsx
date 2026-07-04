@@ -1,0 +1,640 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  HomeIcon, DashboardIcon, FundIcon, IncomeIcon, EventIcon, 
+  SettingsIcon, LogoutIcon, DownloadIcon, BellIcon,
+  InfoIcon, CheckIcon, SpeakerIcon, CalendarIcon, UsersIcon
+} from '../../components/Icons';
+import { Navbar } from '../../components/Navbar';
+import { QuickActionModal } from '../../components/QuickActionModal';
+
+const MemberDashboard = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Modals state
+  const [modalType, setModalType] = useState(null); // 'receipt'
+  const [selectedReceiptData, setSelectedReceiptData] = useState(null);
+
+  // Mock student stats
+  const memberName = "Rahul Verma";
+  const memberRoll = "22BCS108";
+  
+  const [personalPayments, setPersonalPayments] = useState([
+    { id: 1, txId: 'TXN8274920491', amount: 500, date: '2026-06-15', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (June)', status: 'Verified' },
+    { id: 2, txId: 'TXN1938492048', amount: 500, date: '2026-05-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (May)', status: 'Verified' },
+    { id: 3, txId: 'TXN8492019385', amount: 500, date: '2026-04-08', mode: 'UPI / Paytm', purpose: 'Monthly Contribution (April)', status: 'Verified' },
+    { id: 4, txId: 'TXN0293847291', amount: 500, date: '2026-03-12', mode: 'Cash', purpose: 'Monthly Contribution (March)', status: 'Verified' },
+    { id: 5, txId: 'TXN7392840193', amount: 500, date: '2026-02-05', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (February)', status: 'Verified' },
+    { id: 6, txId: 'TXN1039482710', amount: 500, date: '2026-01-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (January)', status: 'Verified' }
+  ]);
+
+  const [announcements, setAnnouncements] = useState([
+    { id: 1, title: 'Farewell Venue Finalised!', date: '2026-06-26', content: 'The Farewell Committee has booked the Main Auditorium for July 15. The event starts at 5:00 PM. Dress code: Formal/Ethnic.', priority: 'High' },
+    { id: 2, title: 'Dues collection deadline extended', date: '2026-06-10', content: 'Due to semester exams, the deadline for June contributions has been extended to July 5. Please complete UPI transfers.', priority: 'Normal' },
+    { id: 3, title: 'Charity Drive Donation Report', date: '2026-06-07', content: 'We successfully distributed food packages to 45 children at the shelter. Total expenses incurred: Rs. 8,000. Invoice copies are in the drive.', priority: 'Low' }
+  ]);
+
+  const [memberEvents, setMemberEvents] = useState([
+    { id: 1, title: 'Farewell Gala 2026', date: '2026-07-15', fee: 500, venue: 'Main Auditorium', rsvp: 'Attending', desc: 'Farewell celebration for the graduating batch of 2026.' },
+    { id: 2, title: 'Batch Project Exhibition', date: '2026-07-28', fee: 0, venue: 'CSE Lab 2 & 3', rsvp: 'Unconfirmed', desc: 'Mini project exhibition and external jury evaluation.' }
+  ]);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query.toLowerCase());
+  };
+
+  const toggleRSVP = (eventId) => {
+    setMemberEvents(memberEvents.map(ev => {
+      if (ev.id === eventId) {
+        const nextRSVP = ev.rsvp === 'Attending' ? 'Declined' : 'Attending';
+        return { ...ev, rsvp: nextRSVP };
+      }
+      return ev;
+    }));
+  };
+
+  const openReceiptModal = (pay) => {
+    setSelectedReceiptData({
+      student: memberName,
+      rollNo: memberRoll,
+      amount: pay.amount,
+      date: pay.date,
+      purpose: pay.purpose,
+      txId: pay.txId,
+      paymentMode: pay.mode
+    });
+    setModalType('receipt');
+  };
+
+  const triggerMobileToggle = () => {
+    setMobileSidebarOpen(!mobileSidebarOpen);
+  };
+
+  // Calculations
+  const amountContributed = personalPayments.reduce((sum, p) => sum + p.amount, 0);
+  const remainingDues = 0; // Fully paid up to June
+  const batchFundTotal = 154000;
+  const upcomingEventCount = memberEvents.length;
+
+  const sidebarItems = [
+    { name: 'Home', icon: <HomeIcon /> },
+    { name: 'Dashboard', icon: <DashboardIcon /> },
+    { name: 'My Contributions', icon: <IncomeIcon /> },
+    { name: 'Payment History', icon: <FundIcon /> },
+    { name: 'Events', icon: <EventIcon /> },
+    { name: 'Announcements', icon: <SpeakerIcon /> },
+  ];
+
+  const filteredHistory = personalPayments.filter(p => 
+    p.purpose.toLowerCase().includes(searchQuery) ||
+    p.txId.toLowerCase().includes(searchQuery) ||
+    p.mode.toLowerCase().includes(searchQuery)
+  );
+
+  return (
+    <div className="app-container">
+      
+      {/* Sidebar Navigation */}
+      <aside style={{
+        position: 'fixed',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        width: 'var(--sidebar-width)',
+        background: 'var(--bg-sidebar)',
+        borderRight: '1px solid var(--border-color)',
+        padding: '1.5rem 1.25rem',
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 95,
+        transform: mobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.3s ease',
+      }} className="sidebar-aside">
+        
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem', paddingLeft: '0.5rem' }}>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: '700',
+            fontSize: '1.1rem'
+          }}>
+            🎓
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: '700', lineHeight: 1.2 }}>StudentPortal</h3>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Roll No: 22BCS108</span>
+          </div>
+        </div>
+
+        {/* Navigation List */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flexGrow: 1 }}>
+          {sidebarItems.map((item) => {
+            const isActive = activeTab === item.name;
+            return (
+              <button
+                key={item.name}
+                onClick={() => {
+                  if (item.name === 'Home') {
+                    navigate('/landing');
+                  } else {
+                    setActiveTab(item.name);
+                  }
+                  setMobileSidebarOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--border-radius-md)',
+                  border: 'none',
+                  background: isActive ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' : 'transparent',
+                  color: isActive ? '#fff' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  fontWeight: isActive ? '600' : '500',
+                  fontSize: '0.875rem',
+                  textAlign: 'left',
+                  transition: 'all 0.2s ease',
+                  boxShadow: isActive ? '0 4px 10px rgba(124,58,237,0.15)' : 'none'
+                }}
+                className={!isActive ? 'sidebar-btn-hover' : ''}
+              >
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  {React.cloneElement(item.icon, { color: isActive ? '#fff' : 'var(--text-muted)' })}
+                </span>
+                {item.name}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Logout */}
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            padding: '0.75rem 1rem',
+            borderRadius: 'var(--border-radius-md)',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--danger)',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.875rem',
+            textAlign: 'left',
+            marginTop: 'auto'
+          }}
+        >
+          <LogoutIcon color="var(--danger)" />
+          Logout
+        </button>
+      </aside>
+
+      {/* Main Panel Content */}
+      <main className="main-content">
+        
+        {/* Top Navbar */}
+        <Navbar 
+          title={`Student / ${activeTab}`} 
+          userRole="Member" 
+          onSearch={handleSearch}
+          toggleMobileSidebar={triggerMobileToggle}
+        />
+
+        {/* TAB 1: DASHBOARD VIEW */}
+        {activeTab === 'Dashboard' && (
+          <div className="animate-fade">
+            
+            {/* Header greeting */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Hello, {memberName}!</h2>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>You have no pending dues for the month of June. Keep it up!</span>
+            </div>
+
+            {/* Widget Cards Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1.5rem',
+              marginBottom: '2rem'
+            }}>
+              
+              {/* Amount Contributed */}
+              <div className="glass-card active-border">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>MY CONTRIBUTIONS</span>
+                  <span style={{ color: 'var(--success)' }}>💸</span>
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>Rs. {amountContributed.toLocaleString()}</h2>
+                <div style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span>✓ 6 Payments Complete</span>
+                </div>
+              </div>
+
+              {/* Remaining Dues */}
+              <div className="glass-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>REMAINING DUES</span>
+                  <span>💳</span>
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: remainingDues > 0 ? 'var(--danger)' : 'var(--success)' }}>
+                  Rs. {remainingDues.toLocaleString()}
+                </h2>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No outstanding payments</div>
+              </div>
+
+              {/* Total Batch Fund Balance */}
+              <div className="glass-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL BATCH FUND</span>
+                  <span style={{ color: 'var(--primary-blue)' }}><FundIcon size={16}/></span>
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem' }}>Rs. {batchFundTotal.toLocaleString()}</h2>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Shared batch transparent ledger</div>
+              </div>
+
+              {/* Payment Status Card */}
+              <div className="glass-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>PAYMENT STATUS</span>
+                  <span>🛡️</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0' }}>
+                  <span className="badge badge-success" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>Verified Member</span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>All payment checks approved</div>
+              </div>
+
+            </div>
+
+            {/* Custom Interactive SVG charts for Student */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '1.5rem',
+              marginBottom: '2rem'
+            }}>
+              
+              {/* Chart 1: Personal Contribution History Chart */}
+              <div className="glass-card">
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>My Contribution History</h3>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '0.75rem', fontSize: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#7c3aed' }}></span>
+                    <span style={{ color: 'var(--text-muted)' }}>Paid Amount (Rs.)</span>
+                  </div>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <svg viewBox="0 0 360 150" width="100%" height="150" style={{ overflow: 'visible' }}>
+                    {/* Y scale grid lines */}
+                    {[0, 250, 500].map((val, idx) => {
+                      const y = 10 + 100 * (1 - val/500);
+                      return (
+                        <g key={idx}>
+                          <line x1="30" y1={y} x2="350" y2={y} stroke="var(--border-color)" strokeWidth="1" strokeDasharray="3 3" />
+                          <text x="24" y={y + 4} fill="var(--text-muted)" fontSize="9" textAnchor="end">Rs. {val}</text>
+                        </g>
+                      );
+                    })}
+
+                    {/* Bars for Jan-Jun */}
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, idx) => {
+                      const x = 50 + idx * 50;
+                      const h = 100; // Fixed Rs. 500 paid monthly
+                      const y = 10;
+                      return (
+                        <g key={idx} style={{ cursor: 'pointer' }}>
+                          <rect x={x} y={y} width="18" height={h} fill="url(#purple-grad)" rx="4" />
+                          <text x={x + 9} y="128" fill="var(--text-muted)" fontSize="9" textAnchor="middle" fontWeight="600">{m}</text>
+                        </g>
+                      );
+                    })}
+                    <defs>
+                      <linearGradient id="purple-grad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#c084fc" />
+                        <stop offset="100%" stopColor="#7c3aed" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Chart 2: Batch Fund overall progress Dial */}
+              <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>Batch Fund Collection Dial</h3>
+                
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexGrow: 1, flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+                    {/* Circle dial */}
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                      <circle cx="60" cy="60" r="48" fill="transparent" stroke="var(--border-color)" strokeWidth="10" />
+                      <circle cx="60" cy="60" r="48" fill="transparent" stroke="#2563eb" strokeWidth="10" strokeDasharray="301.6" strokeDashoffset="36.2" transform="rotate(-90 60 60)" style={{ strokeLinecap: 'round' }} />
+                    </svg>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                      <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>88%</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>Collection Rate</h4>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4', maxWidth: '160px' }}>
+                      Rs. 2,12,000 has been collected out of target Rs. 2,40,000 for the semester.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Announcements & Upcoming Events preview */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 1fr',
+              gap: '1.5rem'
+            }} className="dashboard-grid-bottom">
+              
+              {/* Latest Announcements */}
+              <div className="glass-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Batch Announcements</h3>
+                  <button onClick={() => setActiveTab('Announcements')} style={{ background: 'transparent', border: 'none', color: 'var(--primary-purple)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}>View All</button>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {announcements.slice(0, 2).map((ann) => (
+                    <div key={ann.id} style={{
+                      padding: '1rem',
+                      borderRadius: '12px',
+                      background: 'rgba(124, 58, 237, 0.03)',
+                      border: '1px solid var(--border-color)',
+                      position: 'relative'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', alignItems: 'center' }}>
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: '600' }}>{ann.title}</h4>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{ann.date}</span>
+                      </div>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>{ann.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* RSVP Events list */}
+              <div className="glass-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Upcoming Events & RSVP</h3>
+                  <button onClick={() => setActiveTab('Events')} style={{ background: 'transparent', border: 'none', color: 'var(--primary-purple)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}>View All</button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {memberEvents.map((ev) => (
+                    <div key={ev.id} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '10px',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-app)'
+                    }}>
+                      <div>
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: '600', margin: 0 }}>{ev.title}</h4>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Date: {ev.date}</span>
+                      </div>
+                      <button 
+                        onClick={() => toggleRSVP(ev.id)}
+                        className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
+                      >
+                        {ev.rsvp === 'Attending' ? '✓ Attending' : 'RSVP Now'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* TAB 2: MY CONTRIBUTIONS */}
+        {activeTab === 'My Contributions' && (
+          <div className="glass-card animate-fade">
+            <h2 style={{ fontSize: '1.35rem', marginBottom: '1rem', fontWeight: '700' }}>My Contribution Status</h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>
+              Your batch payments are audited by coordinators. Below is your detailed balance ledger for the current semester.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              <div style={{ border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '12px', background: 'rgba(100,116,139,0.02)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL PAID</span>
+                <h3 style={{ fontSize: '1.5rem', color: 'var(--success)' }}>Rs. {amountContributed.toLocaleString()}</h3>
+              </div>
+              <div style={{ border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '12px', background: 'rgba(100,116,139,0.02)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>REMAINING BALANCE</span>
+                <h3 style={{ fontSize: '1.5rem', color: 'var(--text-main)' }}>Rs. 0</h3>
+              </div>
+              <div style={{ border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '12px', background: 'rgba(100,116,139,0.02)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>NEXT DUE DATE</span>
+                <h3 style={{ fontSize: '1.5rem', color: 'var(--primary-purple)' }}>July 10, 2026</h3>
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(37,99,235,0.05)', padding: '1rem', borderRadius: '10px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <span style={{ fontSize: '1.25rem' }}>💡</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: '1.4' }}>
+                <strong>Payment Reminder:</strong> Standard monthly contributions (Rs. 500) are collected by the 10th of every month. Payments can be directly transferred via UPI to the batch coordinator.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: PAYMENT HISTORY */}
+        {activeTab === 'Payment History' && (
+          <div className="glass-card animate-fade">
+            <h2 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', fontWeight: '700' }}>My Payment Ledger</h2>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Official log of all verified payments. Click "Download Receipt" to save your records.</span>
+
+            <div className="table-container" style={{ marginTop: '1.5rem' }}>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Transaction Reference</th>
+                    <th>Payment Date</th>
+                    <th>Payment Category</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Receipt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredHistory.map((p) => (
+                    <tr key={p.id}>
+                      <td style={{ fontFamily: 'monospace', fontWeight: '600' }}>{p.txId}</td>
+                      <td>{p.date}</td>
+                      <td>{p.purpose}</td>
+                      <td>{p.mode}</td>
+                      <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {p.amount}</td>
+                      <td>
+                        <span className="badge badge-success">{p.status}</span>
+                      </td>
+                      <td>
+                        <button 
+                          onClick={() => openReceiptModal(p)}
+                          className="btn btn-secondary" 
+                          style={{ padding: '0.4rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <DownloadIcon size={12}/> Receipt
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredHistory.length === 0 && (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                        No records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: EVENTS */}
+        {activeTab === 'Events' && (
+          <div className="animate-fade">
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: '700' }}>Upcoming Student Activities</h2>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Review and RSVP for scheduled batch gatherings and project assessments.</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              {memberEvents.map((ev) => (
+                <div key={ev.id} className="glass-card active-border">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <span style={{ background: 'rgba(124, 58, 237, 0.08)', color: 'var(--primary-purple)', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '600' }}>
+                      {ev.date}
+                    </span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--primary-blue)' }}>
+                      {ev.fee > 0 ? `Entry Cost: Rs. ${ev.fee}` : 'Free Entry'}
+                    </span>
+                  </div>
+                  
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{ev.title}</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem', height: '40px', overflow: 'hidden' }}>{ev.desc}</p>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                    <div style={{ fontSize: '0.8rem' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Venue:</span> <strong style={{ color: 'var(--text-main)' }}>{ev.venue}</strong>
+                    </div>
+                    
+                    <button 
+                      onClick={() => toggleRSVP(ev.id)}
+                      className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ 
+                        padding: '0.45rem 1rem', 
+                        fontSize: '0.8rem',
+                        background: ev.rsvp === 'Attending' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' : 'var(--border-color)',
+                        boxShadow: ev.rsvp === 'Attending' ? '0 4px 10px rgba(124,58,237,0.2)' : 'none'
+                      }}
+                    >
+                      {ev.rsvp === 'Attending' ? '✓ I am Attending' : 'RSVP: Unconfirmed'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: ANNOUNCEMENTS */}
+        {activeTab === 'Announcements' && (
+          <div className="glass-card animate-fade">
+            <h2 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', fontWeight: '700' }}>Batch Circulars & Notices</h2>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Official notifications broadcast by batch coordinators and core committees.</span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.75rem' }}>
+              {announcements.map((ann) => (
+                <div 
+                  key={ann.id} 
+                  style={{
+                    padding: '1.5rem',
+                    borderRadius: '16px',
+                    background: 'var(--bg-app)',
+                    border: '1px solid var(--border-color)',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: '600' }}>{ann.title}</h3>
+                      <span className={`badge ${
+                        ann.priority === 'High' ? 'badge-danger' : ann.priority === 'Normal' ? 'badge-info' : 'badge-success'
+                      }`} style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem' }}>
+                        {ann.priority} Priority
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Broadcast: {ann.date}</span>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>{ann.content}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* Digital Receipt Modal */}
+      {modalType === 'receipt' && (
+        <QuickActionModal 
+          type="receipt" 
+          onClose={() => setModalType(null)} 
+          data={selectedReceiptData}
+        />
+      )}
+
+      {/* Hover States Styling CSS */}
+      <style>{`
+        .sidebar-btn-hover:hover {
+          background: rgba(124, 58, 237, 0.05) !important;
+          color: var(--text-main) !important;
+        }
+        @media (min-width: 1025px) {
+          .sidebar-aside {
+            transform: translateX(0) !important;
+          }
+        }
+        @media (max-width: 1024px) {
+          .sidebar-aside {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+          }
+        }
+        @media (max-width: 768px) {
+          .dashboard-grid-bottom {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+
+    </div>
+  );
+};
+
+export default MemberDashboard;
