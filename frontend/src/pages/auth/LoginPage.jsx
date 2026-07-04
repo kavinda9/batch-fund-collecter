@@ -29,7 +29,7 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
     } else if (email.endsWith("@gmail.com")) {
       setError("Password must be at least 8 characters.");
     } else {
-      setError("Access Denied. Use admin@batchfund.com / admin123, or a valid Gmail address (ending in @gmail.com) and a password of at least 6 characters.");
+      setError("Access Denied.");
     }
   };
 
