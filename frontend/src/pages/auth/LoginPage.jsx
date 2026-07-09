@@ -16,9 +16,13 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
 
     // Mock Login Logic
     if (email === "admin@batchfund.com" && password === "admin123") {
+      localStorage.setItem("batchFundAuthToken", "local-dev-admin");
+      localStorage.setItem("batchFundUserRole", "admin");
       navigate("/admin");
       onClose();
     } else if (email.endsWith("@gmail.com") && password.trim().length >= 8) {
+      localStorage.removeItem("batchFundAuthToken");
+      localStorage.setItem("batchFundUserRole", "member");
       const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
       if (gmailRegex.test(email)) {
         navigate("/landing");
