@@ -1,8 +1,62 @@
-import React from 'react';
+// frontend/src/pages/Portal.jsx
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
+import { apiRequest } from '../utils/api.js';
 
 const Portal = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth(); // Monitor live session token hooks
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const evaluateSmartRedirectionGate = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Query the token profile metadata validation endpoint to extract verified permissions
+        const userProfile = await apiRequest("/api/auth/verify", {
+          method: "POST"
+        });
+
+        // Sync local records and execute instant router pushed navigation mapping
+        localStorage.setItem("batchFundUserRole", userProfile.role);
+        
+        if (userProfile.role === "admin") {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/landing', { replace: true });
+        }
+      } catch (err) {
+        console.error("Portal automated access evaluation failure:", err);
+        setLoading(false); // Drop loading wall fallback if backend handshake times out
+      }
+    };
+
+    evaluateSmartRedirectionGate();
+  }, [currentUser, navigate]);
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        width: '100%',
+        background: 'var(--bg-app, #1a1a2e)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff',
+        fontFamily: 'sans-serif',
+        fontSize: '1.2rem',
+        fontWeight: '500'
+      }}>
+        Validating secure profile parameters...
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -180,12 +234,6 @@ const Portal = () => {
                 width: '100%', 
                 background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)',
                 boxShadow: '0 4px 14px 0 rgba(124, 58, 237, 0.25)'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, #6d28d9 0%, #a855f7 100%)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)';
               }}
             >
               Enter Member Portal
