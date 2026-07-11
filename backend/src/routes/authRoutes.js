@@ -1,15 +1,10 @@
-import express from "express";
+// backend/src/routes/authRoutes.js
+import { Router } from 'express';
+import { verifyUserToken } from '../controllers/authController.js';
 
-import authMiddleware from "../middleware/authMiddleware.js";
+const router = Router();
 
-import authController from "../controllers/authController.js";
 
-const router = express.Router();
-
-router.get(
-    "/profile",
-    authMiddleware,
-    authController.getProfile
-);
+router.post('/verify', verifyUserToken);
 
 export default router;

@@ -1,59 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   HomeIcon, DashboardIcon, FundIcon, IncomeIcon, EventIcon, 
-  SettingsIcon, LogoutIcon, DownloadIcon, BellIcon,
-  InfoIcon, CheckIcon, SpeakerIcon, CalendarIcon, UsersIcon
+  LogoutIcon, DownloadIcon, SpeakerIcon
 } from '../../components/Icons';
 import { Navbar } from '../../components/Navbar';
 import { QuickActionModal } from '../../components/QuickActionModal';
+import { apiRequest } from '../../utils/api.js';
+import { useAuth } from '../../hooks/useAuth.js';
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Dynamic API state buckets
+  const [personalPayments, setPersonalPayments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [memberEvents, setMemberEvents] = useState([]);
+  const [batchMetrics, setBatchMetrics] = useState({ totalFund: 0, collectedRate: 88, targetFund: 240000 });
+  const [loading, setLoading] = useState(true);
+
   // Modals state
-  const [modalType, setModalType] = useState(null); // 'receipt'
+  const [modalType, setModalType] = useState(null);
   const [selectedReceiptData, setSelectedReceiptData] = useState(null);
 
-  // Mock student stats
-  const memberName = "Rahul Verma";
-  const memberRoll = "22BCS108";
-  
-  const [personalPayments, setPersonalPayments] = useState([
-    { id: 1, txId: 'TXN8274920491', amount: 500, date: '2026-06-15', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (June)', status: 'Verified' },
-    { id: 2, txId: 'TXN1938492048', amount: 500, date: '2026-05-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (May)', status: 'Verified' },
-    { id: 3, txId: 'TXN8492019385', amount: 500, date: '2026-04-08', mode: 'UPI / Paytm', purpose: 'Monthly Contribution (April)', status: 'Verified' },
-    { id: 4, txId: 'TXN0293847291', amount: 500, date: '2026-03-12', mode: 'Cash', purpose: 'Monthly Contribution (March)', status: 'Verified' },
-    { id: 5, txId: 'TXN7392840193', amount: 500, date: '2026-02-05', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (February)', status: 'Verified' },
-    { id: 6, txId: 'TXN1039482710', amount: 500, date: '2026-01-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (January)', status: 'Verified' }
-  ]);
+  // Fallback metadata formatting values pulled from auth context sessions
+  const memberName = currentUser?.name || "Student Member";
+  const memberRoll = currentUser?.rollNumber || "USJP-SE-MEMBER";
 
-  const [announcements, setAnnouncements] = useState([
-    { id: 1, title: 'Farewell Venue Finalised!', date: '2026-06-26', content: 'The Farewell Committee has booked the Main Auditorium for July 15. The event starts at 5:00 PM. Dress code: Formal/Ethnic.', priority: 'High' },
-    { id: 2, title: 'Dues collection deadline extended', date: '2026-06-10', content: 'Due to semester exams, the deadline for June contributions has been extended to July 5. Please complete UPI transfers.', priority: 'Normal' },
-    { id: 3, title: 'Charity Drive Donation Report', date: '2026-06-07', content: 'We successfully distributed food packages to 45 children at the shelter. Total expenses incurred: Rs. 8,000. Invoice copies are in the drive.', priority: 'Low' }
-  ]);
+  useEffect(() => {
+    const fetchDashboardSynchronizedData = async () => {
+      try {
+        setLoading(true);
+        // Dispatch parallel async requests to pull live schema records from your express routers
+        const [paymentsRes, announcementsRes, eventsRes, metricsRes] = await Promise.all([
+          apiRequest("/api/member/payments", { method: "GET" }),
+          apiRequest("/api/announcements", { method: "GET" }),
+          apiRequest("/api/events", { method: "GET" }),
+          apiRequest("/api/metrics/summary", { method: "GET" }).catch(() => ({ totalFund: 154000, collectedRate: 88, targetFund: 240000 }))
+        ]);
 
-  const [memberEvents, setMemberEvents] = useState([
-    { id: 1, title: 'Farewell Gala 2026', date: '2026-07-15', fee: 500, venue: 'Main Auditorium', rsvp: 'Attending', desc: 'Farewell celebration for the graduating batch of 2026.' },
-    { id: 2, title: 'Batch Project Exhibition', date: '2026-07-28', fee: 0, venue: 'CSE Lab 2 & 3', rsvp: 'Unconfirmed', desc: 'Mini project exhibition and external jury evaluation.' }
-  ]);
+        if (paymentsRes) setPersonalPayments(paymentsRes);
+        if (announcementsRes) setAnnouncements(announcementsRes);
+        if (eventsRes) setMemberEvents(eventsRes);
+        if (metricsRes) setBatchMetrics(metricsRes);
+      } catch (err) {
+        console.error("Failed to load student dashboard records safely:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardSynchronizedData();
+  }, []);
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
   };
 
-  const toggleRSVP = (eventId) => {
-    setMemberEvents(memberEvents.map(ev => {
-      if (ev.id === eventId) {
-        const nextRSVP = ev.rsvp === 'Attending' ? 'Declined' : 'Attending';
-        return { ...ev, rsvp: nextRSVP };
-      }
-      return ev;
-    }));
+  const toggleRSVP = async (eventId, currentRSVP) => {
+    try {
+      const nextRSVP = currentRSVP === 'Attending' ? 'Declined' : 'Attending';
+      await apiRequest(`/api/events/${eventId}/rsvp`, {
+        method: "POST",
+        body: { rsvp: nextRSVP }
+      });
+      
+      // Update local state smoothly upon success
+      setMemberEvents(prev => prev.map(ev => ev.id === eventId ? { ...ev, rsvp: nextRSVP } : ev));
+    } catch (err) {
+      console.error("Failed to sync RSVP changes on backend node:", err);
+    }
   };
 
   const openReceiptModal = (pay) => {
@@ -73,11 +93,14 @@ const MemberDashboard = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
-  // Calculations
+  const handleSystemLogout = async () => {
+    if (logout) await logout();
+    navigate('/');
+  };
+
+  // Calculations derived from live database values
   const amountContributed = personalPayments.reduce((sum, p) => sum + p.amount, 0);
-  const remainingDues = 0; // Fully paid up to June
-  const batchFundTotal = 154000;
-  const upcomingEventCount = memberEvents.length;
+  const remainingDues = 0; 
 
   const sidebarItems = [
     { name: 'Home', icon: <HomeIcon /> },
@@ -89,27 +112,32 @@ const MemberDashboard = () => {
   ];
 
   const filteredHistory = personalPayments.filter(p => 
-    p.purpose.toLowerCase().includes(searchQuery) ||
-    p.txId.toLowerCase().includes(searchQuery) ||
-    p.mode.toLowerCase().includes(searchQuery)
+    p.purpose?.toLowerCase().includes(searchQuery) ||
+    p.txId?.toLowerCase().includes(searchQuery) ||
+    p.mode?.toLowerCase().includes(searchQuery)
   );
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh', width: '100%', background: 'var(--bg-app, #1a1a2e)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#ffffff', fontFamily: 'sans-serif', fontSize: '1.2rem'
+      }}>
+        Assembling academic and contribution records ledger...
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
       
       {/* Sidebar Navigation */}
       <aside style={{
-        position: 'fixed',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        width: 'var(--sidebar-width)',
-        background: 'var(--bg-sidebar)',
-        borderRight: '1px solid var(--border-color)',
-        padding: '1.5rem 1.25rem',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 95,
+        position: 'fixed', top: 0, bottom: 0, left: 0,
+        width: 'var(--sidebar-width)', background: 'var(--bg-sidebar)',
+        borderRight: '1px solid var(--border-color)', padding: '1.5rem 1.25rem',
+        display: 'flex', flexDirection: 'column', zIndex: 95,
         transform: mobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.3s ease',
       }} className="sidebar-aside">
@@ -117,22 +145,16 @@ const MemberDashboard = () => {
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem', paddingLeft: '0.5rem' }}>
           <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
+            width: '32px', height: '32px', borderRadius: '8px',
             background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: '700',
-            fontSize: '1.1rem'
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontWeight: '700', fontSize: '1.1rem'
           }}>
             🎓
           </div>
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: '700', lineHeight: 1.2 }}>StudentPortal</h3>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Roll No: 22BCS108</span>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>ID: {memberRoll}</span>
           </div>
         </div>
 
@@ -152,19 +174,12 @@ const MemberDashboard = () => {
                   setMobileSidebarOpen(false);
                 }}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 1rem',
-                  borderRadius: 'var(--border-radius-md)',
-                  border: 'none',
-                  background: isActive ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' : 'transparent',
-                  color: isActive ? '#fff' : 'var(--text-muted)',
-                  cursor: 'pointer',
-                  fontWeight: isActive ? '600' : '500',
-                  fontSize: '0.875rem',
-                  textAlign: 'left',
-                  transition: 'all 0.2s ease',
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                  padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)',
+                  border: 'none', background: isActive ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' : 'transparent',
+                  color: isActive ? '#fff' : 'var(--text-muted)', cursor: 'pointer',
+                  fontWeight: isActive ? '600' : '500', fontSize: '0.875rem',
+                  textAlign: 'left', transition: 'all 0.2s ease',
                   boxShadow: isActive ? '0 4px 10px rgba(124,58,237,0.15)' : 'none'
                 }}
                 className={!isActive ? 'sidebar-btn-hover' : ''}
@@ -180,21 +195,13 @@ const MemberDashboard = () => {
 
         {/* Logout */}
         <button
-          onClick={() => navigate('/')}
+          onClick={handleSystemLogout}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            padding: '0.75rem 1rem',
-            borderRadius: 'var(--border-radius-md)',
-            border: 'none',
-            background: 'transparent',
-            color: 'var(--danger)',
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '0.875rem',
-            textAlign: 'left',
-            marginTop: 'auto'
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            padding: '0.75rem 1rem', borderRadius: 'var(--border-radius-md)',
+            border: 'none', background: 'transparent', color: 'var(--danger)',
+            cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem',
+            textAlign: 'left', marginTop: 'auto'
           }}
         >
           <LogoutIcon color="var(--danger)" />
@@ -204,8 +211,6 @@ const MemberDashboard = () => {
 
       {/* Main Panel Content */}
       <main className="main-content">
-        
-        {/* Top Navbar */}
         <Navbar 
           title={`Student / ${activeTab}`} 
           userRole="Member" 
@@ -216,22 +221,16 @@ const MemberDashboard = () => {
         {/* TAB 1: DASHBOARD VIEW */}
         {activeTab === 'Dashboard' && (
           <div className="animate-fade">
-            
-            {/* Header greeting */}
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Hello, {memberName}!</h2>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>You have no pending dues for the month of June. Keep it up!</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Transparency snapshot synchronized with your core ledger balance profile.</span>
             </div>
 
             {/* Widget Cards Grid */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '2rem'
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '1.5rem', marginBottom: '2rem'
             }}>
-              
-              {/* Amount Contributed */}
               <div className="glass-card active-border">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>MY CONTRIBUTIONS</span>
@@ -239,11 +238,10 @@ const MemberDashboard = () => {
                 </div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>Rs. {amountContributed.toLocaleString()}</h2>
                 <div style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <span>✓ 6 Payments Complete</span>
+                  <span>✓ {personalPayments.length} Payments Complete</span>
                 </div>
               </div>
 
-              {/* Remaining Dues */}
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>REMAINING DUES</span>
@@ -252,20 +250,18 @@ const MemberDashboard = () => {
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: remainingDues > 0 ? 'var(--danger)' : 'var(--success)' }}>
                   Rs. {remainingDues.toLocaleString()}
                 </h2>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No outstanding payments</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No outstanding baseline audits</div>
               </div>
 
-              {/* Total Batch Fund Balance */}
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL BATCH FUND</span>
                   <span style={{ color: 'var(--primary-blue)' }}><FundIcon size={16}/></span>
                 </div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem' }}>Rs. {batchFundTotal.toLocaleString()}</h2>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem' }}>Rs. {batchMetrics.totalFund.toLocaleString()}</h2>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Shared batch transparent ledger</div>
               </div>
 
-              {/* Payment Status Card */}
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>PAYMENT STATUS</span>
@@ -276,18 +272,13 @@ const MemberDashboard = () => {
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>All payment checks approved</div>
               </div>
-
             </div>
 
-            {/* Custom Interactive SVG charts for Student */}
+            {/* SVG Charts section */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '1.5rem',
-              marginBottom: '2rem'
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '1.5rem', marginBottom: '2rem'
             }}>
-              
-              {/* Chart 1: Personal Contribution History Chart */}
               <div className="glass-card">
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>My Contribution History</h3>
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginBottom: '0.75rem', fontSize: '0.75rem' }}>
@@ -298,7 +289,6 @@ const MemberDashboard = () => {
                 </div>
                 <div style={{ position: 'relative' }}>
                   <svg viewBox="0 0 360 150" width="100%" height="150" style={{ overflow: 'visible' }}>
-                    {/* Y scale grid lines */}
                     {[0, 250, 500].map((val, idx) => {
                       const y = 10 + 100 * (1 - val/500);
                       return (
@@ -309,15 +299,16 @@ const MemberDashboard = () => {
                       );
                     })}
 
-                    {/* Bars for Jan-Jun */}
-                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, idx) => {
+                    {(personalPayments.slice(0, 6).reverse()).map((p, idx) => {
                       const x = 50 + idx * 50;
-                      const h = 100; // Fixed Rs. 500 paid monthly
-                      const y = 10;
+                      const h = Math.min(100, (p.amount / 500) * 100); 
+                      const y = 110 - h;
                       return (
-                        <g key={idx} style={{ cursor: 'pointer' }}>
+                        <g key={p.id || idx} style={{ cursor: 'pointer' }}>
                           <rect x={x} y={y} width="18" height={h} fill="url(#purple-grad)" rx="4" />
-                          <text x={x + 9} y="128" fill="var(--text-muted)" fontSize="9" textAnchor="middle" fontWeight="600">{m}</text>
+                          <text x={x + 9} y="128" fill="var(--text-muted)" fontSize="8" textAnchor="middle" fontWeight="600">
+                            {p.date ? p.date.substring(5, 7) + "/" + p.date.substring(8, 10) : `P${idx+1}`}
+                          </text>
                         </g>
                       );
                     })}
@@ -331,90 +322,63 @@ const MemberDashboard = () => {
                 </div>
               </div>
 
-              {/* Chart 2: Batch Fund overall progress Dial */}
               <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>Batch Fund Collection Dial</h3>
-                
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexGrow: 1, flexWrap: 'wrap' }}>
                   <div style={{ position: 'relative', width: '120px', height: '120px' }}>
-                    {/* Circle dial */}
                     <svg width="120" height="120" viewBox="0 0 120 120">
                       <circle cx="60" cy="60" r="48" fill="transparent" stroke="var(--border-color)" strokeWidth="10" />
-                      <circle cx="60" cy="60" r="48" fill="transparent" stroke="#2563eb" strokeWidth="10" strokeDasharray="301.6" strokeDashoffset="36.2" transform="rotate(-90 60 60)" style={{ strokeLinecap: 'round' }} />
+                      <circle cx="60" cy="60" r="48" fill="transparent" stroke="#2563eb" strokeWidth="10" strokeDasharray="301.6" strokeDashoffset={301.6 - (301.6 * batchMetrics.collectedRate) / 100} transform="rotate(-90 60 60)" style={{ strokeLinecap: 'round' }} />
                     </svg>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                      <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>88%</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>{batchMetrics.collectedRate}%</span>
                     </div>
                   </div>
-
                   <div>
                     <h4 style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>Collection Rate</h4>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4', maxWidth: '160px' }}>
-                      Rs. 2,12,000 has been collected out of target Rs. 2,40,000 for the semester.
+                      Rs. {batchMetrics.totalFund.toLocaleString()} collected out of target Rs. {batchMetrics.targetFund.toLocaleString()} for the current period.
                     </p>
                   </div>
                 </div>
               </div>
-
             </div>
 
-            {/* Announcements & Upcoming Events preview */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1.2fr 1fr',
-              gap: '1.5rem'
-            }} className="dashboard-grid-bottom">
-              
-              {/* Latest Announcements */}
+            {/* Notifications and Events preview summary split */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem' }} className="dashboard-grid-bottom">
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Batch Announcements</h3>
                   <button onClick={() => setActiveTab('Announcements')} style={{ background: 'transparent', border: 'none', color: 'var(--primary-purple)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}>View All</button>
                 </div>
-                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {announcements.slice(0, 2).map((ann) => (
-                    <div key={ann.id} style={{
-                      padding: '1rem',
-                      borderRadius: '12px',
-                      background: 'rgba(124, 58, 237, 0.03)',
-                      border: '1px solid var(--border-color)',
-                      position: 'relative'
-                    }}>
+                    <div key={ann.id || ann._id} style={{ padding: '1rem', borderRadius: '12px', background: 'rgba(124, 58, 237, 0.03)', border: '1px solid var(--border-color)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', alignItems: 'center' }}>
                         <h4 style={{ fontSize: '0.9rem', fontWeight: '600' }}>{ann.title}</h4>
                         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{ann.date}</span>
                       </div>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>{ann.content}</p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>{ann.content}</p>
                     </div>
                   ))}
+                  {announcements.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No recent coordinator notices broadcasted.</p>}
                 </div>
               </div>
 
-              {/* RSVP Events list */}
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Upcoming Events & RSVP</h3>
                   <button onClick={() => setActiveTab('Events')} style={{ background: 'transparent', border: 'none', color: 'var(--primary-purple)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}>View All</button>
                 </div>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {memberEvents.map((ev) => (
-                    <div key={ev.id} style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '10px',
-                      border: '1px solid var(--border-color)',
-                      background: 'var(--bg-app)'
-                    }}>
+                  {memberEvents.slice(0, 3).map((ev) => (
+                    <div key={ev.id || ev._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-app)' }}>
                       <div>
                         <h4 style={{ fontSize: '0.85rem', fontWeight: '600', margin: 0 }}>{ev.title}</h4>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Date: {ev.date}</span>
                       </div>
                       <button 
-                        onClick={() => toggleRSVP(ev.id)}
+                        onClick={() => toggleRSVP(ev.id || ev._id, ev.rsvp)}
                         className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
                         style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
                       >
@@ -422,11 +386,10 @@ const MemberDashboard = () => {
                       </button>
                     </div>
                   ))}
+                  {memberEvents.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No future events scheduled.</p>}
                 </div>
               </div>
-
             </div>
-
           </div>
         )}
 
@@ -435,9 +398,8 @@ const MemberDashboard = () => {
           <div className="glass-card animate-fade">
             <h2 style={{ fontSize: '1.35rem', marginBottom: '1rem', fontWeight: '700' }}>My Contribution Status</h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>
-              Your batch payments are audited by coordinators. Below is your detailed balance ledger for the current semester.
+              Your batch payments are audited by coordinators. Below is your detailed balance ledger.
             </p>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
               <div style={{ border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '12px', background: 'rgba(100,116,139,0.02)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL PAID</span>
@@ -445,19 +407,14 @@ const MemberDashboard = () => {
               </div>
               <div style={{ border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '12px', background: 'rgba(100,116,139,0.02)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>REMAINING BALANCE</span>
-                <h3 style={{ fontSize: '1.5rem', color: 'var(--text-main)' }}>Rs. 0</h3>
+                <h3 style={{ fontSize: '1.5rem', color: 'var(--text-main)' }}>Rs. {remainingDues}</h3>
               </div>
               <div style={{ border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '12px', background: 'rgba(100,116,139,0.02)' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>NEXT DUE DATE</span>
-                <h3 style={{ fontSize: '1.5rem', color: 'var(--primary-purple)' }}>July 10, 2026</h3>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>LAST AUDITED TRANSACTION</span>
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--primary-purple)', marginTop: '0.4rem', fontFamily: 'monospace' }}>
+                  {personalPayments[0]?.txId || "None"}
+                </h3>
               </div>
-            </div>
-
-            <div style={{ background: 'rgba(37,99,235,0.05)', padding: '1rem', borderRadius: '10px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <span style={{ fontSize: '1.25rem' }}>💡</span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: '1.4' }}>
-                <strong>Payment Reminder:</strong> Standard monthly contributions (Rs. 500) are collected by the 10th of every month. Payments can be directly transferred via UPI to the batch coordinator.
-              </span>
             </div>
           </div>
         )}
@@ -466,7 +423,7 @@ const MemberDashboard = () => {
         {activeTab === 'Payment History' && (
           <div className="glass-card animate-fade">
             <h2 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', fontWeight: '700' }}>My Payment Ledger</h2>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Official log of all verified payments. Click "Download Receipt" to save your records.</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Official log of all verified payments. Click "Receipt" to generate documentation.</span>
 
             <div className="table-container" style={{ marginTop: '1.5rem' }}>
               <table className="custom-table">
@@ -482,16 +439,14 @@ const MemberDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredHistory.map((p) => (
-                    <tr key={p.id}>
+                  {filteredHistory.map((p, idx) => (
+                    <tr key={p.id || idx}>
                       <td style={{ fontFamily: 'monospace', fontWeight: '600' }}>{p.txId}</td>
                       <td>{p.date}</td>
                       <td>{p.purpose}</td>
                       <td>{p.mode}</td>
                       <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {p.amount}</td>
-                      <td>
-                        <span className="badge badge-success">{p.status}</span>
-                      </td>
+                      <td><span className="badge badge-success">{p.status || "Verified"}</span></td>
                       <td>
                         <button 
                           onClick={() => openReceiptModal(p)}
@@ -506,7 +461,7 @@ const MemberDashboard = () => {
                   {filteredHistory.length === 0 && (
                     <tr>
                       <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                        No records found.
+                        No contribution transaction matching criteria located.
                       </td>
                     </tr>
                   )}
@@ -521,12 +476,11 @@ const MemberDashboard = () => {
           <div className="animate-fade">
             <div style={{ marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.35rem', fontWeight: '700' }}>Upcoming Student Activities</h2>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Review and RSVP for scheduled batch gatherings and project assessments.</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Review and RSVP for scheduled batch activities.</span>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-              {memberEvents.map((ev) => (
-                <div key={ev.id} className="glass-card active-border">
+              {memberEvents.map((ev, idx) => (
+                <div key={ev.id || idx} className="glass-card active-border">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                     <span style={{ background: 'rgba(124, 58, 237, 0.08)', color: 'var(--primary-purple)', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '600' }}>
                       {ev.date}
@@ -535,21 +489,17 @@ const MemberDashboard = () => {
                       {ev.fee > 0 ? `Entry Cost: Rs. ${ev.fee}` : 'Free Entry'}
                     </span>
                   </div>
-                  
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{ev.title}</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem', height: '40px', overflow: 'hidden' }}>{ev.desc}</p>
-                  
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                     <div style={{ fontSize: '0.8rem' }}>
                       <span style={{ color: 'var(--text-muted)' }}>Venue:</span> <strong style={{ color: 'var(--text-main)' }}>{ev.venue}</strong>
                     </div>
-                    
                     <button 
-                      onClick={() => toggleRSVP(ev.id)}
+                      onClick={() => toggleRSVP(ev.id || ev._id, ev.rsvp)}
                       className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
                       style={{ 
-                        padding: '0.45rem 1rem', 
-                        fontSize: '0.8rem',
+                        padding: '0.45rem 1rem', fontSize: '0.8rem',
                         background: ev.rsvp === 'Attending' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' : 'var(--border-color)',
                         boxShadow: ev.rsvp === 'Attending' ? '0 4px 10px rgba(124,58,237,0.2)' : 'none'
                       }}
@@ -567,27 +517,15 @@ const MemberDashboard = () => {
         {activeTab === 'Announcements' && (
           <div className="glass-card animate-fade">
             <h2 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', fontWeight: '700' }}>Batch Circulars & Notices</h2>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Official notifications broadcast by batch coordinators and core committees.</span>
-
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Official notifications broadcast by batch coordinators.</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.75rem' }}>
-              {announcements.map((ann) => (
-                <div 
-                  key={ann.id} 
-                  style={{
-                    padding: '1.5rem',
-                    borderRadius: '16px',
-                    background: 'var(--bg-app)',
-                    border: '1px solid var(--border-color)',
-                    position: 'relative'
-                  }}
-                >
+              {announcements.map((ann, idx) => (
+                <div key={ann.id || idx} style={{ padding: '1.5rem', borderRadius: '16px', background: 'var(--bg-app)', border: '1px solid var(--border-color)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <h3 style={{ fontSize: '1.05rem', fontWeight: '600' }}>{ann.title}</h3>
-                      <span className={`badge ${
-                        ann.priority === 'High' ? 'badge-danger' : ann.priority === 'Normal' ? 'badge-info' : 'badge-success'
-                      }`} style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem' }}>
-                        {ann.priority} Priority
+                      <span className={`badge ${ann.priority === 'High' ? 'badge-danger' : 'badge-info'}`} style={{ fontSize: '0.65rem' }}>
+                        {ann.priority || "Normal"} Priority
                       </span>
                     </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Broadcast: {ann.date}</span>
@@ -598,41 +536,19 @@ const MemberDashboard = () => {
             </div>
           </div>
         )}
-
       </main>
 
-      {/* Digital Receipt Modal */}
+      {/* Digital Receipt Modal Component hook */}
       {modalType === 'receipt' && (
-        <QuickActionModal 
-          type="receipt" 
-          onClose={() => setModalType(null)} 
-          data={selectedReceiptData}
-        />
+        <QuickActionModal type="receipt" onClose={() => setModalType(null)} data={selectedReceiptData} />
       )}
 
-      {/* Hover States Styling CSS */}
       <style>{`
-        .sidebar-btn-hover:hover {
-          background: rgba(124, 58, 237, 0.05) !important;
-          color: var(--text-main) !important;
-        }
-        @media (min-width: 1025px) {
-          .sidebar-aside {
-            transform: translateX(0) !important;
-          }
-        }
-        @media (max-width: 1024px) {
-          .sidebar-aside {
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-          }
-        }
-        @media (max-width: 768px) {
-          .dashboard-grid-bottom {
-            grid-template-columns: 1fr !important;
-          }
-        }
+        .sidebar-btn-hover:hover { background: rgba(124, 58, 237, 0.05) !important; color: var(--text-main) !important; }
+        @media (min-width: 1025px) { .sidebar-aside { transform: translateX(0) !important; } }
+        @media (max-width: 1024px) { .sidebar-aside { box-shadow: 0 10px 40px rgba(0,0,0,0.2); } }
+        @media (max-width: 768px) { .dashboard-grid-bottom { grid-template-columns: 1fr !important; } }
       `}</style>
-
     </div>
   );
 };

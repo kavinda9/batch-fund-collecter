@@ -1,20 +1,13 @@
 import express from "express";
-import authMiddleware from "../middleware/authMiddleware.js";
+
+import { verifyToken } from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
 import adminController from "../controllers/adminController.js";
 
 const router = express.Router();
 
-// All admin routes require authentication + admin role
-router.use(authMiddleware, adminMiddleware);
-
-// ── Dashboard Stats ──────────────────────────
-router.get("/stats", adminController.getStats);
-
-// ── Slip Review ──────────────────────────────
-router.get("/slips", adminController.getAllSlips);
-router.patch("/slips/:id/approve", adminController.approveSlip);
-router.patch("/slips/:id/reject", adminController.rejectSlip);
+router.use(verifyToken);
+router.use(adminMiddleware);
 
 // ── Member Management ────────────────────────
 router.get("/members", adminController.getMembers);
