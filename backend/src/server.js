@@ -1,51 +1,45 @@
-import 'dotenv/config'
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import morgan from 'morgan'
-import "./config/firebase.js";
-import authRoutes from "./routes/authRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
+// backend/src/server.js
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
+import campaignRoutes from './routes/campaignRoutes.js';
 
+// Load environment variables from .env file
+dotenv.config();
 
-const app = express()
-const PORT = process.env.PORT || 5001
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(helmet())
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
-app.use(morgan('dev'))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
+// Global Middleware
+app.use(cors()); // Enable Cross-Origin Resource Sharing for frontend access
+app.use(express.json()); // Enable JSON body parsing for inbound payloads
 
+// Application Route Gateways
+app.use('/api/auth', authRoutes);
+app.use('/api/campaigns', campaignRoutes);
 
-// Health check
+// Base System Health-Check Route
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uploader: 'solo-dev'
+  });
+});
 
-// Routes (to be added)
-// app.use('/api/auth',       authRoutes)
-// app.use('/api/users',      userRoutes)
-// app.use('/api/contributions', contributionRoutes)
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' })
-})
-
-// Global error handler
+// Global Fallback Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' })
-})
+  console.error('Unhandled Server Error:', err.stack);
+  res.status(500).json({
+    success: false,
+    message: 'An unexpected internal server error occurred.'
+  });
+});
 
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`)
-  })
-}
+// Start the Express Engine
+app.listen(PORT, () => {
+  console.log(`🚀 API Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
 
-export default app
+export default app;
