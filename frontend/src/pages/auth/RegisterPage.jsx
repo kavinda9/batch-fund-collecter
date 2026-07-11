@@ -1,7 +1,12 @@
+// frontend/src/pages/auth/RegisterPage.jsx
 import React, { useState } from "react";
+import { useAuth } from "../../hooks/useAuth.js";
+import { apiRequest } from "../../utils/api.js";
 import "./RegisterPage.css";
 
 const RegisterPage = ({ onClose, onSwitchToLogin }) => {
+  const { register } = useAuth(); // Destructure the Firebase auth registration engine
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,6 +19,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false); // Manages loading state during the network handshake
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,21 +58,49 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    // Firebase register logic will go here later
-    console.log("Register:", formData);
+
+    setSubmitting(true);
+    try {
+      // Step 1: Initialize account creation with Firebase Authentication
+      await register(formData.email, formData.password);
+
+      // Step 2: Fire the onboarding handshake metadata package to the Express server backend
+      await apiRequest("/api/auth/verify", {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name,
+          regNumber: formData.regNumber,
+          degreeProgram: formData.degreeProgram,
+          batch: formData.batch,
+          contactNumber: formData.contactNumber,
+        }),
+      });
+
+      // Clear layout triggers on total registration lifecycle success
+      if (onClose) onClose();
+    } catch (err) {
+      console.error("Registration structural workflow catch error:", err);
+      setErrors({
+        submit: err.message || "Registration gateway could not authenticate connection.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="register-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="register-title">Sign Up</h2>
+
+        {errors.submit && <div className="auth-error" style={{ color: "#d93838", backgroundColor: "#fff0f0", padding: "10px", borderRadius: "4px", marginBottom: "15px", fontSize: "14px" }}>{errors.submit}</div>}
 
         <form onSubmit={handleSubmit} className="register-form">
           {/* Name */}
@@ -78,6 +112,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Enter your full name"
               value={formData.name}
               onChange={handleChange}
+              disabled={submitting}
               style={{
                 backgroundColor: formData.name ? "#5ced73" : undefined,
                 color: formData.name ? "#1a1a2e" : undefined
@@ -95,6 +130,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
+              disabled={submitting}
               style={{
                 backgroundColor: formData.email ? "#5ced73" : undefined,
                 color: formData.email ? "#1a1a2e" : undefined
@@ -112,6 +148,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Enter your registration number"
               value={formData.regNumber}
               onChange={handleChange}
+              disabled={submitting}
               style={{
                 backgroundColor: formData.regNumber ? "#5ced73" : undefined,
                 color: formData.regNumber ? "#1a1a2e" : undefined
@@ -131,6 +168,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="e.g. BSc Computer Science"
               value={formData.degreeProgram}
               onChange={handleChange}
+              disabled={submitting}
               style={{
                 backgroundColor: formData.degreeProgram ? "#5ced73" : undefined,
                 color: formData.degreeProgram ? "#1a1a2e" : undefined
@@ -148,6 +186,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               name="batch"
               value={formData.batch}
               onChange={handleChange}
+              disabled={submitting}
               className={formData.batch === "" ? "select-placeholder" : ""}
               style={{
                 backgroundColor: formData.batch ? "#5ced73" : undefined,
@@ -175,6 +214,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               value={formData.contactNumber}
               onChange={handleChange}
               maxLength={10}
+              disabled={submitting}
               style={{
                 backgroundColor: formData.contactNumber ? "#5ced73" : undefined,
                 color: formData.contactNumber ? "#1a1a2e" : undefined
@@ -194,6 +234,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Minimum 8 characters"
               value={formData.password}
               onChange={handleChange}
+              disabled={submitting}
               style={{
                 backgroundColor: formData.password ? "#5ced73" : undefined,
                 color: formData.password ? "#1a1a2e" : undefined
@@ -213,6 +254,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
               placeholder="Repeat your password"
               value={formData.reenterPassword}
               onChange={handleChange}
+              disabled={submitting}
               style={{
                 backgroundColor: formData.reenterPassword ? "#5ced73" : undefined,
                 color: formData.reenterPassword ? "#1a1a2e" : undefined
@@ -223,14 +265,14 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
             )}
           </div>
 
-          <button type="submit" className="register-btn">
-            Create Account
+          <button type="submit" className="register-btn" disabled={submitting}>
+            {submitting ? "Processing..." : "Create Account"}
           </button>
         </form>
 
         <p className="login-text">
           Already have an account?{" "}
-          <span className="login-link" onClick={onSwitchToLogin}>
+          <span className="login-link" onClick={!submitting ? onSwitchToLogin : undefined}>
             Login
           </span>
         </p>
