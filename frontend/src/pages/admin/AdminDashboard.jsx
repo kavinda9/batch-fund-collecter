@@ -65,6 +65,15 @@ const AdminDashboard = () => {
 
   const [activities, setActivities] = useState(initialActivities);
 
+  const [settings, setSettings] = useState({
+    academicYear: '2025-2026',
+    batchSizeLimit: 68,
+    monthlyContribution: 500,
+    monthlyDueDate: 10,
+    remindersEnabled: true,
+    receiptUploadsEnabled: true
+  });
+
   useEffect(() => {
     const loadDashboard = async () => {
       try {
@@ -83,11 +92,46 @@ const AdminDashboard = () => {
       }
     };
 
+    const loadSettings = async () => {
+      try {
+        const response = await api.get('/api/admin/settings');
+        if (response.data && response.data.settings) {
+          setSettings(response.data.settings);
+        }
+      } catch (settingsError) {
+        console.error('Failed to load system settings from backend:', settingsError);
+      }
+    };
+
     loadDashboard();
+    loadSettings();
   }, []);
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
+  };
+
+  const handleSettingChange = (key, value) => {
+    setSettings((current) => ({
+      ...current,
+      [key]: value
+    }));
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setError('');
+      const response = await api.put('/api/admin/settings', settings);
+      if (response.data && response.data.success) {
+        alert("Settings saved successfully!");
+        setSettings(response.data.settings);
+      } else {
+        alert(response.data?.message || "Failed to update configurations.");
+      }
+    } catch (saveError) {
+      console.error("Settings submission lifecycle failure:", saveError);
+      alert(saveError.response?.data?.message || "Could not connect to settings API backend.");
+    }
   };
 
   const handleModalSubmit = (formData) => {
@@ -831,7 +875,7 @@ const AdminDashboard = () => {
         )}
 
         {/* TAB 7: SETTINGS TAB */}
-        {activeTab === 'Settings' && (
+        {activeTab === 'Settings' && settings && (
           <div className="glass-card animate-fade" style={{ maxWidth: '640px' }}>
             <h2 style={{ fontSize: '1.35rem', marginBottom: '1.5rem', fontWeight: '700' }}>System Configurations</h2>
             
@@ -839,44 +883,85 @@ const AdminDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Active Academic Year</label>
-                  <select className="form-input" defaultValue="2025-2026">
+                  <select 
+                    className="form-input" 
+                    value={settings.academicYear || "2025-2026"}
+                    onChange={(e) => handleSettingChange('academicYear', e.target.value)}
+                  >
                     <option value="2025-2026">2025 - 2026</option>
                     <option value="2026-2027">2026 - 2027</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Batch Size Limit</label>
-                  <input type="number" className="form-input" defaultValue="68" />
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={settings.batchSizeLimit ?? 68}
+                    onChange={(e) => handleSettingChange('batchSizeLimit', Number(e.target.value))}
+                  />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Standard Monthly Contribution (Rs.)</label>
-                  <input type="number" className="form-input" defaultValue="500" />
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={settings.monthlyContribution ?? 500}
+                    onChange={(e) => handleSettingChange('monthlyContribution', Number(e.target.value))}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Monthly Due Date</label>
-                  <input type="number" className="form-input" defaultValue="10" min="1" max="28" />
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={settings.monthlyDueDate ?? 10} 
+                    min="1" 
+                    max="28" 
+                    onChange={(e) => handleSettingChange('monthlyDueDate', Number(e.target.value))}
+                  />
                 </div>
               </div>
 
               <div className="form-group">
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input type="checkbox" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    checked={settings.remindersEnabled ?? true} 
+                    onChange={(e) => handleSettingChange('remindersEnabled', e.target.checked)}
+                  />
                   Enable automatic WhatsApp/Email dues reminders
                 </label>
               </div>
               <div className="form-group">
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input type="checkbox" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    checked={settings.receiptUploadsEnabled ?? true} 
+                    onChange={(e) => handleSettingChange('receiptUploadsEnabled', e.target.checked)}
+                  />
                   Allow students to upload receipts directly for approval
                 </label>
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button onClick={() => alert("Settings saved successfully!")} className="btn btn-primary">Save Settings</button>
-                <button className="btn btn-secondary">Restore Defaults</button>
+                <button onClick={handleSaveSettings} className="btn btn-primary">Save Settings</button>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={() => setSettings({
+                    academicYear: '2025-2026',
+                    batchSizeLimit: 68,
+                    monthlyContribution: 500,
+                    monthlyDueDate: 10,
+                    remindersEnabled: true,
+                    receiptUploadsEnabled: true
+                  })}
+                >
+                  Restore Defaults
+                </button>
               </div>
             </div>
           </div>

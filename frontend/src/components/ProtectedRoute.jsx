@@ -24,7 +24,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   }
 
   // Optional Admin authorization layer check
-  if (requireAdmin && (!user.claims || user.claims.admin !== true)) {
+  const userRole = localStorage.getItem("batchFundUserRole");
+  const isAdmin = userRole === 'admin' || user.email === 'admin@batchfund.com' || (user.claims && user.claims.admin === true);
+
+  if (requireAdmin && !isAdmin) {
     console.warn(`Unauthorized access attempt blocked for user: ${user.email}`);
     return <Navigate to="/" replace />;
   }

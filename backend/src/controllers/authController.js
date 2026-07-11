@@ -30,11 +30,11 @@ export const verifyUserToken = async (req, res) => {
         uid,
         email,
         name: name || email.split('@')[0], // Fallback if display name isn't set yet
-        role: 'member', // Default systemic baseline assignment
+        role: email === 'admin@batchfund.com' ? 'admin' : 'member', // Default systemic baseline assignment
         joinedAt: new Date().toISOString()
       };
       await userRef.set(userData);
-      console.log(`New user synchronized into Firestore: ${uid}`);
+      console.log(`New user synchronized into Firestore: ${uid} with role: ${userData.role}`);
     } else {
       userData = userDoc.data();
     }
