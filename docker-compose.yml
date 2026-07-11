@@ -11,7 +11,11 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
+<<<<<<< HEAD
       - VITE_API_URL=http://localhost:5000
+=======
+      - VITE_API_URL=http://localhost:5001
+>>>>>>> 14cdde4 (updated files)
     depends_on:
       - backend
 
@@ -20,7 +24,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
+<<<<<<< HEAD
       - '5000:5000'
+=======
+      - '5001:5001'
+>>>>>>> 14cdde4 (updated files)
     volumes:
       - ./backend:/app
       - /app/node_modules

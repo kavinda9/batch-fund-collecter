@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+>>>>>>> 14cdde4 (updated files)
 import { useNavigate } from 'react-router-dom';
 import { 
   HomeIcon, DashboardIcon, FundIcon, IncomeIcon, EventIcon, 
@@ -8,6 +12,11 @@ import {
 import { Navbar } from '../../components/Navbar';
 import { QuickActionModal } from '../../components/QuickActionModal';
 
+<<<<<<< HEAD
+=======
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
+>>>>>>> 14cdde4 (updated files)
 const MemberDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -18,6 +27,7 @@ const MemberDashboard = () => {
   const [modalType, setModalType] = useState(null); // 'receipt'
   const [selectedReceiptData, setSelectedReceiptData] = useState(null);
 
+<<<<<<< HEAD
   // Mock student stats
   const memberName = "Rahul Verma";
   const memberRoll = "22BCS108";
@@ -41,11 +51,152 @@ const MemberDashboard = () => {
     { id: 1, title: 'Farewell Gala 2026', date: '2026-07-15', fee: 500, venue: 'Main Auditorium', rsvp: 'Attending', desc: 'Farewell celebration for the graduating batch of 2026.' },
     { id: 2, title: 'Batch Project Exhibition', date: '2026-07-28', fee: 0, venue: 'CSE Lab 2 & 3', rsvp: 'Unconfirmed', desc: 'Mini project exhibition and external jury evaluation.' }
   ]);
+=======
+  // Student stats/profile info
+  const [profile, setProfile] = useState({
+    name: "Loading...",
+    regNumber: "Loading..."
+  });
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    regNumber: "",
+    degreeProgram: "",
+    batch: "",
+    contactNumber: ""
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
+  
+  const [personalPayments, setPersonalPayments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [memberEvents, setMemberEvents] = useState([]);
+  const [monthlyPaid, setMonthlyPaid] = useState(Array(12).fill(0));
+  const [generalStats, setGeneralStats] = useState({
+    totalCollected: 0,
+    targetSemester: 240000,
+    totalPaid: 0,
+    totalPending: 0
+  });
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    };
+  };
+
+  const loadAllData = async () => {
+    try {
+      const headers = getAuthHeaders();
+
+      // Load profile info
+      const profileRes = await fetch(`${API_BASE}/api/auth/profile`, { headers });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setProfile(profileData.user);
+        setProfileForm({
+          name: profileData.user.name || "",
+          regNumber: profileData.user.regNumber || "",
+          degreeProgram: profileData.user.degreeProgram || "",
+          batch: profileData.user.batch || "",
+          contactNumber: profileData.user.contactNumber || ""
+        });
+      }
+
+      // Load personal slips/payments
+      const slipsRes = await fetch(`${API_BASE}/api/slips/my`, { headers });
+      if (slipsRes.ok) {
+        const slipsData = await slipsRes.json();
+        const paymentsList = slipsData.payments || [];
+        
+        // Calculate monthly paid amount for 12 months of 2026
+        const monthsData = Array(12).fill(0);
+        paymentsList.forEach(p => {
+          if (p.status === 'approved' && Array.isArray(p.monthsCovered)) {
+            p.monthsCovered.forEach(m => {
+              if (m.year === 2026 && m.month >= 1 && m.month <= 12) {
+                // Distribute payment amount evenly over covered months
+                monthsData[m.month - 1] += (p.amount / p.monthsCovered.length);
+              }
+            });
+          }
+        });
+        setMonthlyPaid(monthsData);
+
+        // Map slips to the required visual structure safely
+        const paymentsMapped = paymentsList.map((p) => {
+          let monthsStr = "";
+          if (Array.isArray(p.monthsCovered)) {
+            monthsStr = p.monthsCovered.map(m => m ? `${m.month}/${m.year}` : "").filter(Boolean).join(', ');
+          }
+          
+          let dateStr = "-";
+          if (p.createdAt) {
+            try {
+              const d = new Date(p.createdAt);
+              if (!isNaN(d.getTime())) {
+                dateStr = d.toLocaleDateString("en-GB");
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }
+
+          return {
+            id: p.id,
+            txId: p.slipFilename?.substring(0, 16) || p.id?.substring(0, 8),
+            amount: p.amount || 0,
+            date: dateStr,
+            mode: "Bank Transfer / Slip",
+            purpose: `Monthly Contribution${monthsStr ? ` (${monthsStr})` : ""}`,
+            status: p.status === 'approved' ? 'Verified' : p.status === 'pending' ? 'Pending' : 'Rejected'
+          };
+        });
+        setPersonalPayments(paymentsMapped);
+      }
+
+      // Load announcements
+      const announcementsRes = await fetch(`${API_BASE}/api/user/announcements`, { headers });
+      if (announcementsRes.ok) {
+        const announcementsData = await announcementsRes.json();
+        setAnnouncements(announcementsData.announcements || []);
+      }
+
+      // Load events
+      const eventsRes = await fetch(`${API_BASE}/api/user/events`, { headers });
+      if (eventsRes.ok) {
+        const eventsData = await eventsRes.json();
+        setMemberEvents(eventsData.events || []);
+      }
+
+      // Load general stats
+      const statsRes = await fetch(`${API_BASE}/api/user/stats`, { headers });
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setGeneralStats({
+          totalCollected: statsData.totalCollected || 0,
+          targetSemester: statsData.targetSemester || 240000,
+          totalPaid: statsData.totalPaid || 0,
+          totalPending: statsData.totalPending || 0
+        });
+      }
+
+    } catch (error) {
+      console.error("Error loading member dashboard:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadAllData();
+  }, []);
+>>>>>>> 14cdde4 (updated files)
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
   };
 
+<<<<<<< HEAD
   const toggleRSVP = (eventId) => {
     setMemberEvents(memberEvents.map(ev => {
       if (ev.id === eventId) {
@@ -54,12 +205,36 @@ const MemberDashboard = () => {
       }
       return ev;
     }));
+=======
+  const toggleRSVP = async (eventId, currentStatus) => {
+    try {
+      const nextStatus = currentStatus === 'Attending' ? 'Declined' : 'Attending';
+      const res = await fetch(`${API_BASE}/api/user/events/${eventId}/rsvp`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status: nextStatus })
+      });
+      if (res.ok) {
+        loadAllData();
+      } else {
+        const err = await res.json();
+        alert(err.message || "Failed to update RSVP");
+      }
+    } catch (error) {
+      console.error("RSVP error:", error);
+    }
+>>>>>>> 14cdde4 (updated files)
   };
 
   const openReceiptModal = (pay) => {
     setSelectedReceiptData({
+<<<<<<< HEAD
       student: memberName,
       rollNo: memberRoll,
+=======
+      student: profile.name,
+      rollNo: profile.regNumber,
+>>>>>>> 14cdde4 (updated files)
       amount: pay.amount,
       date: pay.date,
       purpose: pay.purpose,
@@ -69,14 +244,53 @@ const MemberDashboard = () => {
     setModalType('receipt');
   };
 
+<<<<<<< HEAD
+=======
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    setSaveMessage(null);
+    try {
+      const headers = getAuthHeaders();
+      const res = await fetch(`${API_BASE}/api/auth/profile`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(profileForm)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSaveMessage({ type: 'success', text: "Profile details updated successfully!" });
+        loadAllData();
+      } else {
+        setSaveMessage({ type: 'error', text: data.message || "Failed to update profile." });
+      }
+    } catch (err) {
+      console.error(err);
+      setSaveMessage({ type: 'error', text: "Network error. Please try again." });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+>>>>>>> 14cdde4 (updated files)
   const triggerMobileToggle = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
+<<<<<<< HEAD
   // Calculations
   const amountContributed = personalPayments.reduce((sum, p) => sum + p.amount, 0);
   const remainingDues = 0; // Fully paid up to June
   const batchFundTotal = 154000;
+=======
+  // Calculations — driven by backend stats so they update in real time
+  const amountContributed = generalStats.totalPaid;   // only approved payments
+  const pendingAmount = generalStats.totalPending;     // submitted but not yet reviewed
+  // Dues = 0 once approved payments cover the target; pending shows as partial credit
+  const TARGET_DUES = 3000;
+  const remainingDues = Math.max(0, TARGET_DUES - amountContributed);
+  const batchFundTotal = generalStats.totalCollected;
+>>>>>>> 14cdde4 (updated files)
   const upcomingEventCount = memberEvents.length;
 
   const sidebarItems = [
@@ -86,6 +300,10 @@ const MemberDashboard = () => {
     { name: 'Payment History', icon: <FundIcon /> },
     { name: 'Events', icon: <EventIcon /> },
     { name: 'Announcements', icon: <SpeakerIcon /> },
+<<<<<<< HEAD
+=======
+    { name: 'Settings', icon: <SettingsIcon /> },
+>>>>>>> 14cdde4 (updated files)
   ];
 
   const filteredHistory = personalPayments.filter(p => 
@@ -132,7 +350,11 @@ const MemberDashboard = () => {
           </div>
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: '700', lineHeight: 1.2 }}>StudentPortal</h3>
+<<<<<<< HEAD
             <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Roll No: 22BCS108</span>
+=======
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Roll No: {profile.regNumber}</span>
+>>>>>>> 14cdde4 (updated files)
           </div>
         </div>
 
@@ -211,6 +433,10 @@ const MemberDashboard = () => {
           userRole="Member" 
           onSearch={handleSearch}
           toggleMobileSidebar={triggerMobileToggle}
+<<<<<<< HEAD
+=======
+          onSettings={() => setActiveTab('Settings')}
+>>>>>>> 14cdde4 (updated files)
         />
 
         {/* TAB 1: DASHBOARD VIEW */}
@@ -219,8 +445,13 @@ const MemberDashboard = () => {
             
             {/* Header greeting */}
             <div style={{ marginBottom: '1.5rem' }}>
+<<<<<<< HEAD
               <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Hello, {memberName}!</h2>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>You have no pending dues for the month of June. Keep it up!</span>
+=======
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Hello, {profile.name}!</h2>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>You have no pending dues. Keep it up!</span>
+>>>>>>> 14cdde4 (updated files)
             </div>
 
             {/* Widget Cards Grid */}
@@ -239,7 +470,11 @@ const MemberDashboard = () => {
                 </div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>Rs. {amountContributed.toLocaleString()}</h2>
                 <div style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+<<<<<<< HEAD
                   <span>✓ 6 Payments Complete</span>
+=======
+                  <span>✓ {personalPayments.filter(p => p.status === 'Verified').length} Payments Verified {pendingAmount > 0 && `(+ Rs. ${pendingAmount} Pending)`}</span>
+>>>>>>> 14cdde4 (updated files)
                 </div>
               </div>
 
@@ -252,7 +487,13 @@ const MemberDashboard = () => {
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: remainingDues > 0 ? 'var(--danger)' : 'var(--success)' }}>
                   Rs. {remainingDues.toLocaleString()}
                 </h2>
+<<<<<<< HEAD
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No outstanding payments</div>
+=======
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {remainingDues > 0 ? "Outstanding payments due" : "No outstanding payments"}
+                </div>
+>>>>>>> 14cdde4 (updated files)
               </div>
 
               {/* Total Batch Fund Balance */}
@@ -272,9 +513,21 @@ const MemberDashboard = () => {
                   <span>🛡️</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0' }}>
+<<<<<<< HEAD
                   <span className="badge badge-success" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>Verified Member</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>All payment checks approved</div>
+=======
+                  {remainingDues > 0 ? (
+                    <span className="badge badge-warning" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem', backgroundColor: '#f59e0b', color: '#fff' }}>Pending Dues</span>
+                  ) : (
+                    <span className="badge badge-success" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>Verified Member</span>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {remainingDues > 0 ? "Please complete remaining payments" : "All payment checks approved"}
+                </div>
+>>>>>>> 14cdde4 (updated files)
               </div>
 
             </div>
@@ -309,6 +562,7 @@ const MemberDashboard = () => {
                       );
                     })}
 
+<<<<<<< HEAD
                     {/* Bars for Jan-Jun */}
                     {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, idx) => {
                       const x = 50 + idx * 50;
@@ -316,6 +570,18 @@ const MemberDashboard = () => {
                       const y = 10;
                       return (
                         <g key={idx} style={{ cursor: 'pointer' }}>
+=======
+                    {/* Bars for Jan-Jun based on real monthly data */}
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, idx) => {
+                      const x = 50 + idx * 50;
+                      const val = monthlyPaid[idx] || 0;
+                      // Maximum val is 500, baseline starts at y=110
+                      const h = Math.min(100, (val / 500) * 100);
+                      const y = 110 - h;
+                      return (
+                        <g key={idx} style={{ cursor: 'pointer' }}>
+                          <title>{`${m}: Rs. ${val}`}</title>
+>>>>>>> 14cdde4 (updated files)
                           <rect x={x} y={y} width="18" height={h} fill="url(#purple-grad)" rx="4" />
                           <text x={x + 9} y="128" fill="var(--text-muted)" fontSize="9" textAnchor="middle" fontWeight="600">{m}</text>
                         </g>
@@ -335,6 +601,7 @@ const MemberDashboard = () => {
               <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>Batch Fund Collection Dial</h3>
                 
+<<<<<<< HEAD
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexGrow: 1, flexWrap: 'wrap' }}>
                   <div style={{ position: 'relative', width: '120px', height: '120px' }}>
                     {/* Circle dial */}
@@ -354,6 +621,34 @@ const MemberDashboard = () => {
                     </p>
                   </div>
                 </div>
+=======
+                {(() => {
+                  const percent = Math.min(100, Math.round((generalStats.totalCollected / (generalStats.targetSemester || 240000)) * 100)) || 0;
+                  const circ = 301.6;
+                  const offset = circ * (1 - percent / 100);
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexGrow: 1, flexWrap: 'wrap' }}>
+                      <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+                        {/* Circle dial */}
+                        <svg width="120" height="120" viewBox="0 0 120 120">
+                          <circle cx="60" cy="60" r="48" fill="transparent" stroke="var(--border-color)" strokeWidth="10" />
+                          <circle cx="60" cy="60" r="48" fill="transparent" stroke="#2563eb" strokeWidth="10" strokeDasharray="301.6" strokeDashoffset={offset} transform="rotate(-90 60 60)" style={{ strokeLinecap: 'round', transition: 'stroke-dashoffset 0.5s ease' }} />
+                        </svg>
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                          <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>{percent}%</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>Collection Rate</h4>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4', maxWidth: '160px' }}>
+                          Rs. {generalStats.totalCollected.toLocaleString()} has been collected out of target Rs. {(generalStats.targetSemester || 240000).toLocaleString()} for the semester.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+>>>>>>> 14cdde4 (updated files)
               </div>
 
             </div>
@@ -414,7 +709,11 @@ const MemberDashboard = () => {
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Date: {ev.date}</span>
                       </div>
                       <button 
+<<<<<<< HEAD
                         onClick={() => toggleRSVP(ev.id)}
+=======
+                        onClick={() => toggleRSVP(ev.id, ev.rsvp)}
+>>>>>>> 14cdde4 (updated files)
                         className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
                         style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
                       >
@@ -545,7 +844,11 @@ const MemberDashboard = () => {
                     </div>
                     
                     <button 
+<<<<<<< HEAD
                       onClick={() => toggleRSVP(ev.id)}
+=======
+                      onClick={() => toggleRSVP(ev.id, ev.rsvp)}
+>>>>>>> 14cdde4 (updated files)
                       className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
                       style={{ 
                         padding: '0.45rem 1rem', 
@@ -599,6 +902,93 @@ const MemberDashboard = () => {
           </div>
         )}
 
+<<<<<<< HEAD
+=======
+        {/* TAB 6: SETTINGS */}
+        {activeTab === 'Settings' && (
+          <div className="glass-card animate-fade" style={{ maxWidth: '640px' }}>
+            <h2 style={{ fontSize: '1.35rem', marginBottom: '1.5rem', fontWeight: '700' }}>Account Settings</h2>
+            
+            <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Full Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileForm.name} 
+                    onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Registration Number</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileForm.regNumber} 
+                    onChange={e => setProfileForm({ ...profileForm, regNumber: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Degree Program</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileForm.degreeProgram} 
+                    onChange={e => setProfileForm({ ...profileForm, degreeProgram: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Batch</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileForm.batch} 
+                    onChange={e => setProfileForm({ ...profileForm, batch: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Contact Number</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={profileForm.contactNumber} 
+                  onChange={e => setProfileForm({ ...profileForm, contactNumber: e.target.value })}
+                  required
+                />
+              </div>
+
+              {saveMessage && (
+                <div style={{ 
+                  color: saveMessage.type === 'success' ? '#4caf50' : '#f44336', 
+                  fontSize: '0.85rem',
+                  padding: '0.5rem',
+                  background: saveMessage.type === 'success' ? 'rgba(76,175,80,0.08)' : 'rgba(244,67,54,0.08)',
+                  borderRadius: '6px'
+                }}>
+                  {saveMessage.text}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="submit" className="btn btn-primary" disabled={savingProfile} style={{ padding: '0.6rem 1.2rem', minWidth: '120px' }}>
+                  {savingProfile ? "Saving..." : "Save Details"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+>>>>>>> 14cdde4 (updated files)
       </main>
 
       {/* Digital Receipt Modal */}

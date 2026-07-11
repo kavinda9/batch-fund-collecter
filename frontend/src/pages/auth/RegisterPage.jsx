@@ -1,4 +1,10 @@
 import React, { useState } from "react";
+<<<<<<< HEAD
+=======
+import axios from "axios";
+import { signInWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
+>>>>>>> 14cdde4 (updated files)
 import "./RegisterPage.css";
 
 const RegisterPage = ({ onClose, onSwitchToLogin }) => {
@@ -14,6 +20,12 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
   });
 
   const [errors, setErrors] = useState({});
+<<<<<<< HEAD
+=======
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
+>>>>>>> 14cdde4 (updated files)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,22 +64,134 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
     return newErrors;
   };
 
+<<<<<<< HEAD
   const handleSubmit = (e) => {
     e.preventDefault();
+=======
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError("");
+    setSubmitSuccess("");
+>>>>>>> 14cdde4 (updated files)
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
+<<<<<<< HEAD
     // Firebase register logic will go here later
     console.log("Register:", formData);
   };
 
+=======
+
+    setIsLoading(true);
+    try {
+      // 1. Create account in Firebase Auth + save profile in Firestore
+      const response = await axios.post("http://localhost:5001/api/auth/register", formData);
+
+      if (response.data.success) {
+        // 2. Sign in briefly with Firebase Client SDK to get a user object
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+
+        // 3. Send verification email via Firebase
+        await sendEmailVerification(userCredential.user);
+
+        // 4. Sign out immediately — user cannot use the app until verified
+        await signOut(auth);
+
+        // 5. Show success screen
+        setSubmitSuccess("verification_sent");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      if (err.response && err.response.data) {
+        if (err.response.data.errors) {
+          const backendErrors = {};
+          err.response.data.errors.forEach((e) => {
+            backendErrors[e.path || e.param] = e.msg;
+          });
+          setErrors(backendErrors);
+          setSubmitError("Please correct the highlighted errors.");
+        } else {
+          setSubmitError(err.response.data.message || "Registration failed.");
+        }
+      } else {
+        setSubmitError("Failed to connect to backend server.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show email verification sent screen
+  if (submitSuccess === "verification_sent") {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="register-box" onClick={(e) => e.stopPropagation()}>
+          <div style={{ textAlign: "center", padding: "1rem 0" }}>
+            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✉️</div>
+            <h2 className="register-title">Verify Your Email</h2>
+            <p style={{ color: "#a0aec0", fontSize: "0.9rem", lineHeight: "1.6", marginBottom: "1.5rem" }}>
+              We sent a verification link to <strong style={{ color: "#5ced73" }}>{formData.email}</strong>.
+              <br />
+              Please check your inbox and click the link to activate your account.
+            </p>
+            <p style={{ color: "#718096", fontSize: "0.8rem", marginBottom: "1.5rem" }}>
+              Didn't receive it? Check your spam folder.
+            </p>
+            <button className="register-btn" onClick={onSwitchToLogin}>
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+>>>>>>> 14cdde4 (updated files)
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="register-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="register-title">Sign Up</h2>
 
+<<<<<<< HEAD
+=======
+        {submitSuccess && (
+          <div style={{
+            background: "rgba(16, 185, 129, 0.1)",
+            border: "1px solid rgba(16, 185, 129, 0.3)",
+            color: "#10b981",
+            padding: "0.75rem",
+            borderRadius: "8px",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+            textAlign: "center"
+          }}>
+            {submitSuccess}
+          </div>
+        )}
+
+        {submitError && (
+          <div style={{
+            background: "rgba(239, 68, 68, 0.1)",
+            border: "1px solid rgba(239, 68, 68, 0.3)",
+            color: "#ef4444",
+            padding: "0.75rem",
+            borderRadius: "8px",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+            textAlign: "center"
+          }}>
+            {submitError}
+          </div>
+        )}
+
+>>>>>>> 14cdde4 (updated files)
         <form onSubmit={handleSubmit} className="register-form">
           {/* Name */}
           <div className="input-group">
@@ -223,8 +347,13 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
             )}
           </div>
 
+<<<<<<< HEAD
           <button type="submit" className="register-btn">
             Create Account
+=======
+          <button type="submit" className="register-btn" disabled={isLoading}>
+            {isLoading ? "Creating Account..." : "Create Account"}
+>>>>>>> 14cdde4 (updated files)
           </button>
         </form>
 

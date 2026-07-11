@@ -1,8 +1,17 @@
+<<<<<<< HEAD
 import React, { useState, useRef } from "react";
+=======
+import React, { useState, useRef, useEffect } from "react";
+>>>>>>> 14cdde4 (updated files)
 import { useNavigate } from "react-router-dom";
 import "./PayFund.css";
 import bankLogo from "../../assets/bank.png";
 
+<<<<<<< HEAD
+=======
+const API_BASE = "http://localhost:5001";
+
+>>>>>>> 14cdde4 (updated files)
 /* ============================================================
    PayFund.jsx
    Standalone "batch fund slip upload" page — pulled out of the old
@@ -16,14 +25,18 @@ import bankLogo from "../../assets/bank.png";
    ============================================================ */
 
 const MONTHLY_FUND_AMOUNT = 250; // Rs. per month — keep in sync with dashboard
+<<<<<<< HEAD
 const TOTAL_OUTSTANDING = 3000; // Rs. — replace with real value from backend/context
 
+=======
+>>>>>>> 14cdde4 (updated files)
 const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
 ];
 const monthLabel = (y, m) => `${MONTH_NAMES[m - 1]} ${y}`;
 
+<<<<<<< HEAD
 // TODO: replace this mock queue with the real list of unpaid months
 // (e.g. passed in as a prop, or fetched from your backend/context).
 const MOCK_PAYABLE_QUEUE = [
@@ -35,23 +48,98 @@ const MOCK_PAYABLE_QUEUE = [
     { year: 2026, month: 12 },
 ];
 
+=======
+>>>>>>> 14cdde4 (updated files)
 const PayFund = ({ onBack }) => {
     const navigate = useNavigate();
     const [uploadedFile, setUploadedFile] = useState(null);
     const [amount, setAmount] = useState("");
     const [confirmed, setConfirmed] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+<<<<<<< HEAD
     const [copyText, setCopyText] = useState("Copy account number");
     const fileInputRef = useRef(null);
 
+=======
+    const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState("");
+    const [copyText, setCopyText] = useState("Copy account number");
+    const [remainingDues, setRemainingDues] = useState(3000);
+    const [payableQueue, setPayableQueue] = useState([]);
+    const [queueLoaded, setQueueLoaded] = useState(false);
+    const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const loadPaymentInfo = async () => {
+            // Always start with all 12 months as payable — filtered down below
+            const fullYearQueue = Array.from({ length: 12 }, (_, i) => ({ year: 2026, month: i + 1 }));
+
+            try {
+                const headers = { "Authorization": `Bearer ${token}` };
+
+                // Fetch stats to get remainingDues
+                const statsRes = await fetch(`${API_BASE}/api/user/stats`, { headers });
+                if (statsRes.ok) {
+                    const statsData = await statsRes.json();
+                    const due = Math.max(0, 3000 - (statsData.totalPaid || 0));
+                    setRemainingDues(due);
+                }
+
+                // Fetch all user payments to find which months are already paid/pending
+                const slipsRes = await fetch(`${API_BASE}/api/slips/my`, { headers });
+                if (slipsRes.ok) {
+                    const slipsData = await slipsRes.json();
+
+                    // Collect all months already covered in either approved or pending slips
+                    const coveredMonths = new Set();
+                    slipsData.payments?.forEach((p) => {
+                        if (p.status === "approved" || p.status === "pending") {
+                            p.monthsCovered?.forEach((m) => {
+                                coveredMonths.add(`${m.year}-${m.month}`);
+                            });
+                        }
+                    });
+
+                    // Filter out already covered months
+                    const unpaidQueue = fullYearQueue.filter(m => !coveredMonths.has(`${m.year}-${m.month}`));
+                    setPayableQueue(unpaidQueue);
+                } else {
+                    // API failed — default to all 12 months so user isn't wrongly blocked
+                    setPayableQueue(fullYearQueue);
+                }
+            } catch (err) {
+                console.error("Error loading payment setup info:", err);
+                // On network/parse error, default to all 12 months
+                setPayableQueue(fullYearQueue);
+            } finally {
+                // Always mark the queue as loaded regardless of success/failure
+                setQueueLoaded(true);
+            }
+        };
+
+        loadPaymentInfo();
+    }, []);
+
+>>>>>>> 14cdde4 (updated files)
     const amountNum = Number(amount) || 0;
     const monthsToPay = Math.floor(amountNum / MONTHLY_FUND_AMOUNT);
     const remainder = amountNum % MONTHLY_FUND_AMOUNT;
     const isValidAmount = amountNum > 0 && remainder === 0 && monthsToPay >= 1;
     const monthsCovered = isValidAmount
+<<<<<<< HEAD
         ? MOCK_PAYABLE_QUEUE.slice(0, monthsToPay)
         : [];
     const canSubmit = uploadedFile && isValidAmount && confirmed;
+=======
+        ? payableQueue.slice(0, monthsToPay)
+        : [];
+    // Block submission if monthsCovered is empty AND the queue has fully loaded
+    // (if not loaded yet, monthsCovered being empty is normal — don't block yet)
+    const canSubmit = uploadedFile && isValidAmount && confirmed && !uploading && (!queueLoaded || monthsCovered.length > 0);
+>>>>>>> 14cdde4 (updated files)
 
     const copyAccount = () => {
         navigator.clipboard?.writeText("097200140070892").catch(() => { });
@@ -75,10 +163,55 @@ const PayFund = ({ onBack }) => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
+<<<<<<< HEAD
     const submitPayment = () => {
         if (!canSubmit) return;
         // TODO: send { uploadedFile, amount, monthsCovered } to your backend here.
         setSubmitted(true);
+=======
+    const submitPayment = async () => {
+        if (!canSubmit || uploading) return;
+        setUploadError("");
+        setUploading(true);
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setUploadError("You are not logged in. Please log in and try again.");
+                setUploading(false);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("slipImage", uploadedFile);
+            formData.append("amount", String(amountNum));
+            formData.append("monthsCovered", JSON.stringify(monthsCovered));
+
+            const response = await fetch(`${API_BASE}/api/slips/upload`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    // Do NOT set Content-Type — browser sets it with boundary for FormData
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setUploadError(data.message || "Upload failed. Please try again.");
+                setUploading(false);
+                return;
+            }
+
+            setSubmitted(true);
+        } catch (err) {
+            console.error("submitPayment error:", err);
+            setUploadError("Network error. Please check your connection and try again.");
+        } finally {
+            setUploading(false);
+        }
+>>>>>>> 14cdde4 (updated files)
     };
 
     const handleBack = () => {
@@ -166,11 +299,19 @@ const PayFund = ({ onBack }) => {
                                 </div>
                                 <div className="bank-row">
                                     <span className="br-lbl">
+<<<<<<< HEAD
                                         {TOTAL_OUTSTANDING > 0 ? "Total outstanding" : "Status"}
                                     </span>
                                     <span className="br-val primary-val">
                                         {TOTAL_OUTSTANDING > 0
                                             ? `Rs. ${TOTAL_OUTSTANDING.toLocaleString()}`
+=======
+                                        {remainingDues > 0 ? "Total outstanding" : "Status"}
+                                    </span>
+                                    <span className="br-val primary-val">
+                                        {remainingDues > 0
+                                            ? `Rs. ${remainingDues.toLocaleString()}`
+>>>>>>> 14cdde4 (updated files)
                                             : "Up to date"}
                                     </span>
                                 </div>
@@ -256,6 +397,13 @@ const PayFund = ({ onBack }) => {
                                             Amount must be a multiple of Rs. {MONTHLY_FUND_AMOUNT}{" "}
                                             (1 month = Rs. {MONTHLY_FUND_AMOUNT}).
                                         </div>
+<<<<<<< HEAD
+=======
+                                    ) : isValidAmount && queueLoaded && monthsCovered.length === 0 ? (
+                                        <div className="hint hint-error">
+                                            All months for this year are already covered by existing payments. No remaining months to pay.
+                                        </div>
+>>>>>>> 14cdde4 (updated files)
                                     ) : isValidAmount ? (
                                         <div className="hint">
                                             This covers {monthsToPay} month
@@ -307,8 +455,27 @@ const PayFund = ({ onBack }) => {
                                     disabled={!canSubmit}
                                     onClick={submitPayment}
                                 >
+<<<<<<< HEAD
                                     Submit payment
                                 </button>
+=======
+                                    {uploading ? "Uploading…" : "Submit payment"}
+                                </button>
+
+                                {uploadError && (
+                                    <div style={{
+                                        marginTop: "0.75rem",
+                                        color: "#e53e3e",
+                                        fontSize: "0.85rem",
+                                        textAlign: "center",
+                                        padding: "0.5rem",
+                                        background: "rgba(229,62,62,0.08)",
+                                        borderRadius: "6px"
+                                    }}>
+                                        {uploadError}
+                                    </div>
+                                )}
+>>>>>>> 14cdde4 (updated files)
                             </div>
                         </div>
                     ) : (

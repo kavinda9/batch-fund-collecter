@@ -36,3 +36,10 @@ coverage/
 # Firebase
 .firebase/
 firebase-debug.log
+<<<<<<< HEAD
+=======
+
+# Firebase Service Account
+backend/src/config/serviceAccountKey.json
+backend/uploads/*
+>>>>>>> 14cdde4 (updated files)

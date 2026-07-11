@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
+=======
+import axios from "axios";
+import { sendPasswordResetEmail, signInWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
+>>>>>>> 14cdde4 (updated files)
 import "./LoginPage.css";
 
 const LoginPage = ({ onClose, onSwitchToSignup }) => {
@@ -9,6 +15,7 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
   const [error, setError] = useState("");
   const [forgotMode, setForgotMode] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
+<<<<<<< HEAD
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -40,6 +47,86 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
       setResetSuccess(true);
     } else {
       setError("Please enter a valid registered email address.");
+=======
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setEmailNotVerified(false);
+    setResendSuccess(false);
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post("http://localhost:5001/api/auth/login", {
+        email,
+        password,
+      });
+
+      if (response.data.success) {
+        const { token, user } = response.data;
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        onClose();
+        if (user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/landing");
+        }
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      if (err.response && err.response.data) {
+        if (err.response.data.code === "EMAIL_NOT_VERIFIED") {
+          setEmailNotVerified(true);
+        } else {
+          setError(err.response.data.message || "Login failed.");
+        }
+      } else {
+        setError("Failed to connect to backend server.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendSuccess(false);
+    setError("");
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      await signOut(auth);
+      setResendSuccess(true);
+    } catch (err) {
+      console.error("Resend verification error:", err);
+      setError("Could not resend verification email. Please check your email and password.");
+    }
+  };
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetSuccess(true);
+    } catch (err) {
+      console.error("Password reset error:", err);
+      if (err.code === "auth/user-not-found") {
+        setError("No account found with this email address.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many attempts. Please wait a moment and try again.");
+      } else {
+        setError("Failed to send reset email. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+>>>>>>> 14cdde4 (updated files)
     }
   };
 
@@ -63,6 +150,53 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
           </div>
         )}
 
+<<<<<<< HEAD
+=======
+        {emailNotVerified && (
+          <div style={{
+            background: "rgba(245, 158, 11, 0.1)",
+            border: "1px solid rgba(245, 158, 11, 0.4)",
+            color: "#f59e0b",
+            padding: "0.85rem",
+            borderRadius: "8px",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+            textAlign: "center",
+            lineHeight: "1.5"
+          }}>
+            <div style={{ marginBottom: "0.5rem" }}>
+              📧 Please verify your email before logging in.
+            </div>
+            <span
+              onClick={handleResendVerification}
+              style={{
+                color: "#5ced73",
+                cursor: "pointer",
+                textDecoration: "underline",
+                fontSize: "0.8rem"
+              }}
+            >
+              Resend verification email
+            </span>
+          </div>
+        )}
+
+        {resendSuccess && (
+          <div style={{
+            background: "rgba(16, 185, 129, 0.1)",
+            border: "1px solid rgba(16, 185, 129, 0.3)",
+            color: "#10b981",
+            padding: "0.75rem",
+            borderRadius: "8px",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+            textAlign: "center"
+          }}>
+            ✅ Verification email resent! Check your inbox.
+          </div>
+        )}
+
+>>>>>>> 14cdde4 (updated files)
         {resetSuccess && (
           <div style={{
             background: "rgba(16, 185, 129, 0.1)",
@@ -91,8 +225,13 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
               />
             </div>
 
+<<<<<<< HEAD
             <button type="submit" className="login-btn">
               Send Reset Link
+=======
+            <button type="submit" className="login-btn" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Send Reset Link"}
+>>>>>>> 14cdde4 (updated files)
             </button>
 
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
@@ -145,8 +284,13 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
               </a>
             </div>
 
+<<<<<<< HEAD
             <button type="submit" className="login-btn">
               Login
+=======
+            <button type="submit" className="login-btn" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
+>>>>>>> 14cdde4 (updated files)
             </button>
           </form>
         )}

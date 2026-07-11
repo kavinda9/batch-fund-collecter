@@ -6,6 +6,10 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import MemberDashboard from './pages/member/MemberDashboard';
 import Landing from './pages/contribution/LandingPage';
 import PayFund from './pages/contribution/PayFund';
+<<<<<<< HEAD
+=======
+import AboutPage from './pages/about/AboutPage';
+>>>>>>> 14cdde4 (updated files)
 
 function App() {
   return (
@@ -20,6 +24,10 @@ function App() {
         <Route path="/member" element={<MemberDashboard />} />
         <Route path="/landing" element={<Landing />} />
         <Route path="/pay-fund" element={<PayFund />} />
+<<<<<<< HEAD
+=======
+        <Route path="/about" element={<AboutPage />} />
+>>>>>>> 14cdde4 (updated files)
         
         {/* Wildcard redirects back to your HomePage (or change to /portal if preferred) */}
         <Route path="*" element={<HomePage />} />

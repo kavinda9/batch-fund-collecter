@@ -13,6 +13,7 @@ const ChartCard = ({ title, children }) => (
 );
 
 // 1. Income vs Expense Bar Chart
+<<<<<<< HEAD
 export const IncomeExpenseBarChart = () => {
   const [hoveredIdx, setHoveredIdx] = useState(null);
   
@@ -26,6 +27,61 @@ export const IncomeExpenseBarChart = () => {
   ];
 
   const maxVal = 35000;
+=======
+export const IncomeExpenseBarChart = ({ slips = [], expenses = [] }) => {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
+  
+  // Aggregate real backend data for January-December 2026
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  // Initialize sums
+  const monthlyIncome = Array(12).fill(0);
+  const monthlyExpense = Array(12).fill(0);
+
+  // Group approved slips by month
+  slips.forEach(s => {
+    if (s.status === 'approved' && s.createdAt) {
+      try {
+        const date = new Date(s.createdAt);
+        if (date.getFullYear() === 2026) {
+          const mIdx = date.getMonth();
+          if (mIdx >= 0 && mIdx < 12) {
+            monthlyIncome[mIdx] += Number(s.amount) || 0;
+          }
+        }
+      } catch (err) {}
+    }
+  });
+
+  // Group expenses by month
+  expenses.forEach(e => {
+    if (e.date) {
+      try {
+        const date = new Date(e.date);
+        if (date.getFullYear() === 2026) {
+          const mIdx = date.getMonth();
+          if (mIdx >= 0 && mIdx < 12) {
+            monthlyExpense[mIdx] += Number(e.amount) || 0;
+          }
+        }
+      } catch (err) {}
+    }
+  });
+
+  // Create chart data array
+  const data = months.map((m, idx) => ({
+    month: m,
+    income: monthlyIncome[idx],
+    expense: monthlyExpense[idx]
+  })).slice(0, 6); // Display first 6 months for clear visualization
+
+  // Determine max value for chart scaling dynamically
+  const maxVal = Math.max(
+    10000, 
+    ...data.map(d => Math.max(d.income, d.expense))
+  );
+
+>>>>>>> 14cdde4 (updated files)
   const height = 180;
   const width = 360;
   const paddingLeft = 40;
@@ -76,7 +132,11 @@ export const IncomeExpenseBarChart = () => {
                     fontSize="9" 
                     textAnchor="end"
                   >
+<<<<<<< HEAD
                     Rs. {(val/1000).toFixed(0)}k
+=======
+                    Rs. {(val/1000).toFixed(1)}k
+>>>>>>> 14cdde4 (updated files)
                   </text>
                 </g>
               );
@@ -121,7 +181,11 @@ export const IncomeExpenseBarChart = () => {
                     x={xIncome}
                     y={incomeY}
                     width={barWidth}
+<<<<<<< HEAD
                     height={incomeHeight}
+=======
+                    height={incomeHeight > 2 ? incomeHeight : 2}
+>>>>>>> 14cdde4 (updated files)
                     fill="url(#income-grad)"
                     rx="4"
                     style={{ transition: 'all 0.3s' }}
@@ -132,7 +196,11 @@ export const IncomeExpenseBarChart = () => {
                     x={xExpense}
                     y={expenseY}
                     width={barWidth}
+<<<<<<< HEAD
                     height={expenseHeight}
+=======
+                    height={expenseHeight > 2 ? expenseHeight : 2}
+>>>>>>> 14cdde4 (updated files)
                     fill="url(#expense-grad)"
                     rx="4"
                     style={{ transition: 'all 0.3s' }}
@@ -203,6 +271,7 @@ export const IncomeExpenseBarChart = () => {
 };
 
 // 2. Fund Distribution Donut Chart
+<<<<<<< HEAD
 export const FundDistributionPieChart = () => {
   const [hoveredIdx, setHoveredIdx] = useState(null);
   
@@ -213,6 +282,37 @@ export const FundDistributionPieChart = () => {
     { label: 'Charity & Socials', amount: 8000, color: '#10b981' },
     { label: 'Emergency Fund', amount: 12000, color: '#f59e0b' }
   ];
+=======
+export const FundDistributionPieChart = ({ expenses = [] }) => {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
+  
+  // Aggregate expenses by category
+  const categoriesMap = {};
+  const colors = ['#2563eb', '#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'];
+  
+  expenses.forEach(e => {
+    const cat = e.category || 'Other';
+    const amt = Number(e.amount) || 0;
+    categoriesMap[cat] = (categoriesMap[cat] || 0) + amt;
+  });
+
+  let segments = Object.entries(categoriesMap).map(([label, amount], idx) => ({
+    label,
+    amount,
+    color: colors[idx % colors.length]
+  }));
+
+  // Fallback to beautiful mock segments if no real expenses exist yet
+  if (segments.length === 0) {
+    segments = [
+      { label: 'Events & Cultural', amount: 45000, color: '#2563eb' },
+      { label: 'Batch Trips', amount: 32000, color: '#7c3aed' },
+      { label: 'Academic Supplies', amount: 15000, color: '#06b6d4' },
+      { label: 'Charity & Socials', amount: 8000, color: '#10b981' },
+      { label: 'Emergency Fund', amount: 12000, color: '#f59e0b' }
+    ];
+  }
+>>>>>>> 14cdde4 (updated files)
 
   const total = segments.reduce((sum, s) => sum + s.amount, 0);
   const size = 180;
@@ -222,8 +322,20 @@ export const FundDistributionPieChart = () => {
 
   let cumulativePercent = 0;
 
+<<<<<<< HEAD
   return (
     <ChartCard title="Fund Distribution (Rs. 1,12,000)">
+=======
+  // Format dynamic short abbreviation (e.g. 1.12L or 45k)
+  const formatCompact = (val) => {
+    if (val >= 100000) return `${(val / 100000).toFixed(2)}L`;
+    if (val >= 1000) return `${(val / 1000).toFixed(0)}k`;
+    return val.toString();
+  };
+
+  return (
+    <ChartCard title={`Fund Distribution (Rs. ${total.toLocaleString()})`}>
+>>>>>>> 14cdde4 (updated files)
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', height: '100%' }}>
         <div style={{ position: 'relative', width: `${size}px`, height: `${size}px`, flexShrink: 0, margin: '0 auto' }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -236,7 +348,11 @@ export const FundDistributionPieChart = () => {
               strokeWidth="16"
             />
             {segments.map((seg, idx) => {
+<<<<<<< HEAD
               const percent = seg.amount / total;
+=======
+              const percent = total > 0 ? seg.amount / total : 0;
+>>>>>>> 14cdde4 (updated files)
               const strokeDasharray = `${percent * circumference} ${circumference}`;
               const strokeDashoffset = -cumulativePercent * circumference;
               
@@ -279,7 +395,11 @@ export const FundDistributionPieChart = () => {
               Total Used
             </div>
             <div style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-main)' }}>
+<<<<<<< HEAD
               Rs. 1.12L
+=======
+              Rs. {formatCompact(total)}
+>>>>>>> 14cdde4 (updated files)
             </div>
           </div>
         </div>
@@ -324,7 +444,11 @@ export const FundDistributionPieChart = () => {
                   {seg.label}
                 </span>
                 <span style={{ fontWeight: '600', color: 'var(--text-main)' }}>
+<<<<<<< HEAD
                   Rs. {(seg.amount / 1000).toFixed(0)}k
+=======
+                  Rs. {formatCompact(seg.amount)}
+>>>>>>> 14cdde4 (updated files)
                 </span>
               </div>
             );

@@ -4,6 +4,14 @@
    language already used on the User Dashboard, so the two pages feel
    like one product rather than two separate builds. */
 
+<<<<<<< HEAD
+=======
+@font-face {
+    font-family: "FrontFont";
+    src: url("../../assets/front1.ttf") format("truetype");
+}
+
+>>>>>>> 14cdde4 (updated files)
 :root {
     --landing-bg: #f6faf8;
     --landing-surface: #ffffff;
@@ -23,13 +31,22 @@
 
 .landing-page {
     min-height: 100vh;
+<<<<<<< HEAD
     background: var(--landing-bg);
+=======
+    background-image: url("../../assets/background2.svg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+>>>>>>> 14cdde4 (updated files)
     font-family: "Inter", "Segoe UI", system-ui, sans-serif;
     color: var(--landing-text);
     display: flex;
     flex-direction: column;
 }
 
+<<<<<<< HEAD
 /* ---------- Header ---------- */
 
 .landing-header {
@@ -67,6 +84,32 @@
 .landing-logout:hover {
     border-color: var(--landing-green-500);
     color: var(--landing-green-700);
+=======
+/* ---------- Header Navigation ---------- */
+
+.home-nav {
+    position: fixed;
+    top: 24px;
+    right: 40px;
+    display: flex;
+    gap: 48px;
+    z-index: 100;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: 500;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 10px 20px;
+    transition: opacity 0.2s ease;
+}
+
+.nav-btn:hover {
+    opacity: 0.7;
+>>>>>>> 14cdde4 (updated files)
 }
 
 .landing-logout:focus-visible,
@@ -79,15 +122,33 @@
 
 .landing-main {
     flex: 1;
+<<<<<<< HEAD
     max-width: 720px;
     width: 100%;
     margin: 0 auto;
     padding: 24px 24px 64px;
+=======
+    max-width: 1200px;
+    width: 100%;
+    margin: 100px auto 0;
+    padding: 24px 40px 64px;
+>>>>>>> 14cdde4 (updated files)
     display: flex;
     flex-direction: column;
     gap: 28px;
 }
 
+<<<<<<< HEAD
+=======
+/* Two-column grid layout */
+.landing-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+>>>>>>> 14cdde4 (updated files)
 /* ---------- Hero ---------- */
 
 .landing-hero {
@@ -136,9 +197,15 @@
 
 .landing-title {
     position: relative;
+<<<<<<< HEAD
     font-family: "Space Grotesk", "Inter", sans-serif;
     font-size: clamp(28px, 4vw, 36px);
     font-weight: 600;
+=======
+    font-family: "FrontFont", sans-serif;
+    font-size: clamp(32px, 5vw, 42px);
+    font-weight: bold;
+>>>>>>> 14cdde4 (updated files)
     margin: 0 0 12px;
 }
 
@@ -193,6 +260,7 @@
 
 /* ---------- Quick glance chips ---------- */
 
+<<<<<<< HEAD
 .landing-glance {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -232,6 +300,107 @@
     color: var(--landing-text-muted);
     text-align: center;
     margin: 0;
+=======
+/* ---------- Logo stack (right column) ---------- */
+
+.landing-logo-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+    /* extra gap to accommodate the overflow */
+    padding: 30px 0;
+    /* breathing room for overflowing circles */
+}
+
+.landing-logo-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--landing-radius-lg);
+    padding: 0 28px;
+    height: 90px;
+    /* card is shorter than the circle so circle overflows */
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    overflow: visible;
+    /* let the circle burst out */
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-logo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.landing-logo-circle {
+    width: 120px;
+    /* 150% bigger than 72px original */
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    /* Pull circle up so it overflows both top and bottom of the 90px card */
+    margin-left: -10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.landing-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.landing-logo-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.landing-card-header {
+    font-family: "FrontFont", sans-serif;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.landing-card-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+}
+
+.announcement-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+}
+
+.status-value {
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.status-value.zero,
+.status-value.advance {
+    color: #4caf50; /* Green */
+}
+
+.status-value.arrears {
+    color: #f44336; /* Red */
+>>>>>>> 14cdde4 (updated files)
 }
 
 /* ---------- Motion & responsiveness ---------- */
@@ -254,11 +423,16 @@
     }
 
     .landing-cta,
+<<<<<<< HEAD
     .landing-chip {
+=======
+    .landing-logo-card {
+>>>>>>> 14cdde4 (updated files)
         transition: none;
     }
 }
 
+<<<<<<< HEAD
 @media (max-width: 640px) {
     .landing-header {
         padding: 16px 20px;
@@ -266,13 +440,25 @@
 
     .landing-main {
         padding: 16px 16px 48px;
+=======
+@media (max-width: 900px) {
+    .landing-two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .landing-main {
+        padding: 16px 20px 48px;
+>>>>>>> 14cdde4 (updated files)
     }
 
     .landing-hero {
         padding: 32px 24px;
     }
+<<<<<<< HEAD
 
     .landing-glance {
         grid-template-columns: 1fr;
     }
+=======
+>>>>>>> 14cdde4 (updated files)
 }

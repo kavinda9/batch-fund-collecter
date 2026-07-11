@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+>>>>>>> 14cdde4 (updated files)
 import { useNavigate } from 'react-router-dom';
 import { 
   DashboardIcon, StudentsIcon, FundIcon, IncomeIcon, ExpenseIcon, 
@@ -12,6 +16,11 @@ import {
   FundDistributionPieChart 
 } from '../../components/Charts';
 
+<<<<<<< HEAD
+=======
+const API_BASE = "http://localhost:5001";
+
+>>>>>>> 14cdde4 (updated files)
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -22,6 +31,7 @@ const AdminDashboard = () => {
   const [modalType, setModalType] = useState(null); // 'add-income', 'add-expense', 'create-event', 'generate-report', 'receipt'
   const [selectedReceiptData, setSelectedReceiptData] = useState(null);
 
+<<<<<<< HEAD
   // Mock data states
   const [students, setStudents] = useState([
     { id: 1, name: 'Rahul Verma', roll: '22BCS108', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-15' },
@@ -53,11 +63,87 @@ const AdminDashboard = () => {
     { id: 4, type: 'expense', text: 'Recorded expense: Rs. 4,500 for Lab Journal Printing', time: 'June 18, 2026' },
     { id: 5, type: 'payment', text: 'Rahul Verma paid Rs. 1,500 for Monthly Contribution', time: 'June 15, 2026' }
   ]);
+=======
+  // Stats aggregate values
+  const [stats, setStats] = useState({
+    totalBalance: 0,
+    totalIncome: 0,
+    totalExpenses: 0,
+    pendingCount: 0,
+    memberCount: 0,
+    recentActivity: []
+  });
+
+  // Database lists
+  const [students, setStudents] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [slips, setSlips] = useState([]);
+
+  // Fetch token helper
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    };
+  };
+
+  const loadAllData = async () => {
+    try {
+      const headers = getAuthHeaders();
+      
+      // Load dashboard stats
+      const statsRes = await fetch(`${API_BASE}/api/admin/stats`, { headers });
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData.stats);
+      }
+
+      // Load members
+      const membersRes = await fetch(`${API_BASE}/api/admin/members`, { headers });
+      if (membersRes.ok) {
+        const membersData = await membersRes.json();
+        setStudents(membersData.members);
+      }
+
+      // Load expenses
+      const expensesRes = await fetch(`${API_BASE}/api/admin/expenses`, { headers });
+      if (expensesRes.ok) {
+        const expensesData = await expensesRes.json();
+        setExpenses(expensesData.expenses);
+      }
+
+      // Load events
+      const eventsRes = await fetch(`${API_BASE}/api/admin/events`, { headers });
+      if (eventsRes.ok) {
+        const eventsData = await eventsRes.json();
+        setEvents(eventsData.events);
+      }
+
+      // Load slips
+      const slipsRes = await fetch(`${API_BASE}/api/admin/slips`, { headers });
+      if (slipsRes.ok) {
+        const slipsData = await slipsRes.json();
+        setSlips(slipsData.payments);
+      }
+
+    } catch (error) {
+      console.error("Error loading admin dashboard data:", error);
+    }
+  };
+
+  // Run on load
+  useEffect(() => {
+    loadAllData();
+  }, []);
+>>>>>>> 14cdde4 (updated files)
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
   };
 
+<<<<<<< HEAD
   const handleModalSubmit = (formData) => {
     if (modalType === 'add-income') {
       const newStudentPay = {
@@ -116,15 +202,160 @@ const AdminDashboard = () => {
   const deleteExpense = (id) => {
     if (window.confirm("Are you sure you want to remove this expense record?")) {
       setExpenses(expenses.filter(e => e.id !== id));
+=======
+  const handleModalSubmit = async (formData) => {
+    const headers = getAuthHeaders();
+    try {
+      if (modalType === 'add-expense') {
+        const res = await fetch(`${API_BASE}/api/admin/expenses`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            item: formData.itemName,
+            amount: Number(formData.amount),
+            date: formData.date,
+            category: formData.category,
+            spentBy: formData.spentBy,
+            desc: formData.description
+          })
+        });
+        if (res.ok) {
+          loadAllData();
+        } else {
+          const err = await res.json();
+          alert(err.message || "Failed to add expense");
+        }
+      } else if (modalType === 'create-event') {
+        const res = await fetch(`${API_BASE}/api/admin/events`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            eventTitle: formData.eventTitle,
+            date: formData.date,
+            venue: formData.venue,
+            contributionAmount: Number(formData.contributionAmount),
+            description: formData.description
+          })
+        });
+        if (res.ok) {
+          loadAllData();
+        } else {
+          const err = await res.json();
+          alert(err.message || "Failed to create event");
+        }
+      }
+    } catch (error) {
+      console.error("Modal submit failed:", error);
+    }
+  };
+
+  const deleteStudent = async (uid) => {
+    if (window.confirm("Are you sure you want to delete this student record from authentication and database?")) {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/members/${uid}`, {
+          method: "DELETE",
+          headers: getAuthHeaders()
+        });
+        if (res.ok) {
+          loadAllData();
+        } else {
+          const err = await res.json();
+          alert(err.message || "Failed to delete student");
+        }
+      } catch (error) {
+        console.error("Failed to delete student:", error);
+      }
+    }
+  };
+
+  const deleteExpense = async (id) => {
+    if (window.confirm("Are you sure you want to remove this expense record?")) {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/expenses/${id}`, {
+          method: "DELETE",
+          headers: getAuthHeaders()
+        });
+        if (res.ok) {
+          loadAllData();
+        } else {
+          const err = await res.json();
+          alert(err.message || "Failed to delete expense");
+        }
+      } catch (error) {
+        console.error("Failed to delete expense:", error);
+      }
+    }
+  };
+
+  const deleteEvent = async (id) => {
+    if (window.confirm("Are you sure you want to remove this event record?")) {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/events/${id}`, {
+          method: "DELETE",
+          headers: getAuthHeaders()
+        });
+        if (res.ok) {
+          loadAllData();
+        } else {
+          const err = await res.json();
+          alert(err.message || "Failed to delete event");
+        }
+      } catch (error) {
+        console.error("Failed to delete event:", error);
+      }
+    }
+  };
+
+  const approveSlip = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/slips/${id}/approve`, {
+        method: "PATCH",
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        loadAllData();
+      } else {
+        const err = await res.json();
+        alert(err.message || "Failed to approve slip");
+      }
+    } catch (error) {
+      console.error("Approve slip failed:", error);
+    }
+  };
+
+  const rejectSlip = async (id) => {
+    const reason = prompt("Enter the reason for rejection:");
+    if (reason === null) return; // cancelled
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/slips/${id}/reject`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ adminNote: reason })
+      });
+      if (res.ok) {
+        loadAllData();
+      } else {
+        const err = await res.json();
+        alert(err.message || "Failed to reject slip");
+      }
+    } catch (error) {
+      console.error("Reject slip failed:", error);
+>>>>>>> 14cdde4 (updated files)
     }
   };
 
   const openReceipt = (student) => {
     setSelectedReceiptData({
       student: student.name,
+<<<<<<< HEAD
       rollNo: student.roll,
       amount: student.amountPaid,
       date: student.date || '2026-06-15',
+=======
+      rollNo: student.regNumber || student.roll,
+      amount: student.amountPaid,
+      date: student.lastPaymentDate || student.date || '2026-06-15',
+>>>>>>> 14cdde4 (updated files)
       purpose: 'Regular Batch Contributions',
       txId: `TXN${1000000000 + Math.floor(Math.random() * 900000000)}`
     });
@@ -136,6 +367,7 @@ const AdminDashboard = () => {
   };
 
   const filteredStudents = students.filter(s => 
+<<<<<<< HEAD
     s.name.toLowerCase().includes(searchQuery) || 
     s.roll.toLowerCase().includes(searchQuery) ||
     s.status.toLowerCase().includes(searchQuery)
@@ -154,10 +386,35 @@ const AdminDashboard = () => {
   const pendingContributions = students.filter(s => s.status !== 'Paid').length;
   const numStudents = students.length;
   const upcomingEventsCount = events.length;
+=======
+    s.name?.toLowerCase().includes(searchQuery) || 
+    s.regNumber?.toLowerCase().includes(searchQuery) ||
+    s.status?.toLowerCase().includes(searchQuery)
+  );
+
+  const filteredExpenses = expenses.filter(e => 
+    e.item?.toLowerCase().includes(searchQuery) || 
+    e.category?.toLowerCase().includes(searchQuery) || 
+    e.spentBy?.toLowerCase().includes(searchQuery)
+  );
+
+  // Stats calculation mapped to state
+  const totalBalance = stats.totalBalance;
+  const totalIncome = stats.totalIncome;
+  const totalExpenses = stats.totalExpenses;
+  const pendingContributions = stats.pendingCount;
+  const numStudents = stats.memberCount;
+  const upcomingEventsCount = events.length;
+  const activities = stats.recentActivity;
+>>>>>>> 14cdde4 (updated files)
 
   const sidebarItems = [
     { name: 'Dashboard', icon: <DashboardIcon /> },
     { name: 'Students', icon: <StudentsIcon /> },
+<<<<<<< HEAD
+=======
+    { name: 'Slip Reviews', icon: <BellIcon /> },
+>>>>>>> 14cdde4 (updated files)
     { name: 'Fund Management', icon: <FundIcon /> },
     { name: 'Income Records', icon: <IncomeIcon /> },
     { name: 'Expense Records', icon: <ExpenseIcon /> },
@@ -278,6 +535,10 @@ const AdminDashboard = () => {
           userRole="Admin" 
           onSearch={handleSearch}
           toggleMobileSidebar={triggerMobileToggle}
+<<<<<<< HEAD
+=======
+          onSettings={() => setActiveTab('Settings')}
+>>>>>>> 14cdde4 (updated files)
         />
 
         {/* TAB 1: DASHBOARD VIEW */}
@@ -378,8 +639,13 @@ const AdminDashboard = () => {
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
+<<<<<<< HEAD
               <IncomeExpenseBarChart />
               <FundDistributionPieChart />
+=======
+              <IncomeExpenseBarChart slips={slips} expenses={expenses} />
+              <FundDistributionPieChart expenses={expenses} />
+>>>>>>> 14cdde4 (updated files)
             </div>
 
             {/* Bottom Section: Recent Activities & Fast Tables */}
@@ -409,9 +675,15 @@ const AdminDashboard = () => {
                     </thead>
                     <tbody>
                       {students.slice(0, 4).map((s) => (
+<<<<<<< HEAD
                         <tr key={s.id}>
                           <td style={{ fontWeight: '500' }}>{s.name}</td>
                           <td>{s.roll}</td>
+=======
+                        <tr key={s.uid || s.id}>
+                          <td style={{ fontWeight: '500' }}>{s.name}</td>
+                          <td>{s.regNumber || s.roll}</td>
+>>>>>>> 14cdde4 (updated files)
                           <td style={{ fontWeight: '600' }}>Rs. {s.amountPaid.toLocaleString()}</td>
                           <td>
                             <span className={`badge ${
@@ -488,12 +760,21 @@ const AdminDashboard = () => {
                 </thead>
                 <tbody>
                   {filteredStudents.map((s) => (
+<<<<<<< HEAD
                     <tr key={s.id}>
                       <td style={{ fontWeight: '600' }}>{s.name}</td>
                       <td>{s.roll}</td>
                       <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {s.amountPaid.toLocaleString()}</td>
                       <td style={{ fontWeight: '700', color: s.dues > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>Rs. {s.dues.toLocaleString()}</td>
                       <td>{s.date}</td>
+=======
+                    <tr key={s.uid || s.id}>
+                      <td style={{ fontWeight: '600' }}>{s.name}</td>
+                      <td>{s.regNumber || s.roll}</td>
+                      <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {s.amountPaid.toLocaleString()}</td>
+                      <td style={{ fontWeight: '700', color: (3000 - s.amountPaid) > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>Rs. {Math.max(0, 3000 - s.amountPaid).toLocaleString()}</td>
+                      <td>{s.lastPaymentDate || s.date || '-'}</td>
+>>>>>>> 14cdde4 (updated files)
                       <td>
                         <span className={`badge ${
                           s.status === 'Paid' ? 'badge-success' : s.status === 'Partially Paid' ? 'badge-warning' : 'badge-danger'
@@ -502,16 +783,26 @@ const AdminDashboard = () => {
                       <td>
                         <div style={{ display: 'flex', gap: '0.4rem' }}>
                           <button onClick={() => openReceipt(s)} className="btn btn-secondary" style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem' }}>Receipt</button>
+<<<<<<< HEAD
                           {s.dues > 0 && (
                             <button 
                               onClick={() => alert(`Reminder notification sent successfully to ${s.name} (${s.roll})!`)}
+=======
+                          {s.amountPaid < 3000 && (
+                            <button 
+                              onClick={() => alert(`Reminder notification sent successfully to ${s.name} (${s.regNumber || s.roll})!`)}
+>>>>>>> 14cdde4 (updated files)
                               className="btn btn-outline" 
                               style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', color: 'var(--primary-purple)', borderColor: 'var(--primary-purple)' }}
                             >
                               Remind
                             </button>
                           )}
+<<<<<<< HEAD
                           <button onClick={() => deleteStudent(s.id)} className="btn" style={{ padding: '0.35rem', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
+=======
+                          <button onClick={() => deleteStudent(s.uid || s.id)} className="btn" style={{ padding: '0.35rem', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
+>>>>>>> 14cdde4 (updated files)
                             <TrashIcon size={16} />
                           </button>
                         </div>
@@ -531,6 +822,95 @@ const AdminDashboard = () => {
           </div>
         )}
 
+<<<<<<< HEAD
+=======
+        {/* TAB: SLIP REVIEWS TAB */}
+        {activeTab === 'Slip Reviews' && (
+          <div className="glass-card animate-fade">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: '700' }}>Review Payment Slips</h2>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Verify receipts uploaded by students and approve/reject contributions.</span>
+              </div>
+            </div>
+
+            <div className="table-container">
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Email</th>
+                    <th>Roll Number</th>
+                    <th>Amount Paid</th>
+                    <th>Status</th>
+                    <th>Slip File</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {slips.map((slip) => (
+                    <tr key={slip.id}>
+                      <td style={{ fontWeight: '600' }}>{slip.name}</td>
+                      <td>{slip.email}</td>
+                      <td style={{ fontFamily: 'monospace' }}>{slip.regNumber || '-'}</td>
+                      <td style={{ fontWeight: '700' }}>Rs. {slip.amount?.toLocaleString()}</td>
+                      <td>
+                        <span className={`badge ${
+                          slip.status === 'approved' ? 'badge-success' : slip.status === 'pending' ? 'badge-warning' : 'badge-danger'
+                        }`}>{slip.status}</span>
+                      </td>
+                      <td>
+                        {slip.slipUrl ? (
+                          <a 
+                            href={`${API_BASE}${slip.slipUrl}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ color: 'var(--primary-blue)', textDecoration: 'underline', fontSize: '0.85rem' }}
+                          >
+                            View Receipt File
+                          </a>
+                        ) : '-'}
+                      </td>
+                      <td>
+                        {slip.status === 'pending' ? (
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button 
+                              onClick={() => approveSlip(slip.id)} 
+                              className="btn btn-primary"
+                              style={{ padding: '0.35rem 0.60rem', fontSize: '0.75rem' }}
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              onClick={() => rejectSlip(slip.id)} 
+                              className="btn btn-secondary"
+                              style={{ padding: '0.35rem 0.60rem', fontSize: '0.75rem', color: 'var(--danger)' }}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            {slip.status === 'rejected' && slip.adminNote ? `Rejected: ${slip.adminNote}` : 'Processed'}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {slips.length === 0 && (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                        No slip uploads found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+>>>>>>> 14cdde4 (updated files)
         {/* TAB 3: FUND MANAGEMENT TAB */}
         {activeTab === 'Fund Management' && (
           <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -635,6 +1015,7 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
+<<<<<<< HEAD
                   {filteredStudents.map((s, idx) => (
                     <tr key={s.id}>
                       <td style={{ fontFamily: 'monospace' }}>INC{s.id * 102}</td>
@@ -646,11 +1027,34 @@ const AdminDashboard = () => {
                       <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {s.amountPaid.toLocaleString()}</td>
                       <td>
                         <button onClick={() => openReceipt(s)} className="btn btn-secondary" style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}>
+=======
+                  {slips.filter(slip => slip.status === 'approved').map((slip, idx) => (
+                    <tr key={slip.id}>
+                      <td style={{ fontFamily: 'monospace' }}>INC{idx + 1}</td>
+                      <td style={{ fontWeight: '600' }}>{slip.name}</td>
+                      <td>{slip.regNumber || '-'}</td>
+                      <td>Monthly Contribution</td>
+                      <td>UPI / Bank Transfer</td>
+                      <td>{slip.createdAt ? new Date(slip.createdAt).toLocaleDateString("en-GB") : '-'}</td>
+                      <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {slip.amount?.toLocaleString()}</td>
+                      <td>
+                        <button 
+                          onClick={() => openReceipt({ 
+                            name: slip.name, 
+                            roll: slip.regNumber, 
+                            amountPaid: slip.amount, 
+                            date: slip.createdAt ? new Date(slip.createdAt).toLocaleDateString("en-GB") : '-' 
+                          })} 
+                          className="btn btn-secondary" 
+                          style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
+                        >
+>>>>>>> 14cdde4 (updated files)
                           <DownloadIcon size={12}/> View
                         </button>
                       </td>
                     </tr>
                   ))}
+<<<<<<< HEAD
                   <tr>
                     <td style={{ fontFamily: 'monospace' }}>INC-EXT-1</td>
                     <td style={{ fontWeight: '600' }}>CSE Department Office</td>
@@ -661,6 +1065,15 @@ const AdminDashboard = () => {
                     <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. 15,000</td>
                     <td>-</td>
                   </tr>
+=======
+                  {slips.filter(slip => slip.status === 'approved').length === 0 && (
+                    <tr>
+                      <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                        No approved income records found.
+                      </td>
+                    </tr>
+                  )}
+>>>>>>> 14cdde4 (updated files)
                 </tbody>
               </table>
             </div>
@@ -744,9 +1157,25 @@ const AdminDashboard = () => {
                     <span style={{ background: 'rgba(37,99,235,0.08)', color: 'var(--primary-blue)', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '600' }}>
                       {event.date}
                     </span>
+<<<<<<< HEAD
                     <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--primary-purple)' }}>
                       {event.dues > 0 ? `Cost: Rs. ${event.dues}/head` : 'Free Event'}
                     </span>
+=======
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--primary-purple)' }}>
+                        {event.dues > 0 ? `Cost: Rs. ${event.dues}/head` : 'Free Event'}
+                      </span>
+                      <button 
+                        onClick={() => deleteEvent(event.id)} 
+                        className="btn" 
+                        style={{ padding: '0.2rem', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}
+                        title="Delete Event"
+                      >
+                        <TrashIcon size={14} />
+                      </button>
+                    </div>
+>>>>>>> 14cdde4 (updated files)
                   </div>
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{event.title}</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', height: '40px', overflow: 'hidden' }}>{event.desc}</p>
