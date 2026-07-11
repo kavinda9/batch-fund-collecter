@@ -1,84 +1,53 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import admin from "firebase-admin";
+// backend/src/config/firebase.js
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import admin from 'firebase-admin';
+import dotenv from 'dotenv';
+
+// Ensure environment variables are loaded
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const serviceAccountPath = path.join(__dirname, "serviceAccountKey.json");
-const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
-const googleApplicationCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
 
-const createMissingCredentialError = () => new Error(
-  "Firebase Admin is not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SERVICE_ACCOUNT_BASE64, GOOGLE_APPLICATION_CREDENTIALS, or backend/src/config/serviceAccountKey.json."
-);
+const createCredential = () => {
+  // Strategy 1: Look for local serviceAccountKey.json file first
+  if (fs.existsSync(serviceAccountPath)) {
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    return admin.credential.cert(serviceAccount);
+  }
 
-let firebaseConfigured = false;
-let firestoreEnabled = false;
+  // Strategy 2: Fallback to environment variables for Docker containers & CI/CD deployment
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+    return admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: privateKey,
+    });
+  }
+
+  throw new Error(
+    'Firebase Admin credentials are not configured. Missing src/config/serviceAccountKey.json file or fallback environment variables.'
+  );
+};
 
 if (!admin.apps.length) {
-  if (serviceAccountJson) {
+  try {
     admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(serviceAccountJson)),
+      credential: createCredential(),
     });
-    firebaseConfigured = true;
-    firestoreEnabled = true;
-  } else if (serviceAccountBase64) {
-    const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, "base64").toString("utf8"));
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    firebaseConfigured = true;
-    firestoreEnabled = true;
-  } else if (googleApplicationCredentials) {
-    const credentialPath = path.isAbsolute(googleApplicationCredentials)
-      ? googleApplicationCredentials
-      : path.resolve(process.cwd(), googleApplicationCredentials);
-
-    if (fs.existsSync(credentialPath)) {
-      const serviceAccount = JSON.parse(fs.readFileSync(credentialPath, "utf8"));
-
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      firebaseConfigured = true;
-      firestoreEnabled = true;
-    } else if (process.env.NODE_ENV === "test") {
-      admin.initializeApp({
-        projectId: "batch-fund-test"
-      });
-      firebaseConfigured = true;
-    } else {
-      console.warn("Firebase Admin credentials file was not found. Starting without Firebase auth.");
-    }
-  } else if (fs.existsSync(serviceAccountPath)) {
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    firebaseConfigured = true;
-    firestoreEnabled = true;
-  } else if (process.env.NODE_ENV === "test") {
-    admin.initializeApp({
-      projectId: "batch-fund-test"
-    });
-    firebaseConfigured = true;
-  } else {
-    console.warn("Firebase Admin credentials are missing. Starting without Firebase auth.");
+    console.log('Successfully initialized Firebase Admin SDK (Hybrid Local/Env Setup).');
+  } catch (error) {
+    console.error('Error initializing Firebase Admin SDK:', error.message);
+    throw error;
   }
 }
 
-export const verifyIdToken = async (token) => {
-  if (!firebaseConfigured || typeof admin.auth !== "function") {
-    throw createMissingCredentialError();
-  }
-
-  return admin.auth().verifyIdToken(token);
-};
-
-export const canUseFirestore = () => firestoreEnabled;
-
+export const db = admin.firestore();
+export const auth = admin.auth();
+export const verifyIdToken = (token) => auth.verifyIdToken(token);
+export const canUseFirestore = () => admin.apps.length > 0;
 export default admin;
