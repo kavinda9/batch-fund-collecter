@@ -1,12 +1,12 @@
 import express from "express";
 
-import authMiddleware from "../middleware/authMiddleware.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 import adminMiddleware from "../middleware/adminMiddleware.js";
 import adminController from "../controllers/adminController.js";
 
 const router = express.Router();
 
-router.use(authMiddleware);
+router.use(verifyToken);
 router.use(adminMiddleware);
 
 router.get("/dashboard", adminController.getDashboard);

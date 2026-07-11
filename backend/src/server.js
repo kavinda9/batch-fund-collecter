@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import contributionRoutes from './routes/contributionRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -27,14 +28,20 @@ app.use(express.json()); // Enable JSON body parsing for inbound payloads
 app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/contributions', contributionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Base System Health-Check Route
 app.get('/health', (req, res) => {
   res.status(200).json({
-    status: 'healthy',
+    status: 'ok',
     timestamp: new Date().toISOString(),
     uploader: 'solo-dev'
   });
+});
+
+// Fallback Route for 404
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
 // Global Fallback Error Handler
@@ -47,8 +54,10 @@ app.use((err, req, res, next) => {
 });
 
 // Start the Express Engine
-app.listen(PORT, () => {
-  console.log(`🚀 API Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`🚀 API Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  });
+}
 
 export default app;

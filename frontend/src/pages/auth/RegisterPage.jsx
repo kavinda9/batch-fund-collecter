@@ -1,11 +1,13 @@
 // frontend/src/pages/auth/RegisterPage.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth.js";
 import { apiRequest } from "../../utils/api.js";
 import "./RegisterPage.css";
 
 const RegisterPage = ({ onClose, onSwitchToLogin }) => {
   const { register } = useAuth(); // Destructure the Firebase auth registration engine
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -72,7 +74,7 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
       await register(formData.email, formData.password);
 
       // Step 2: Fire the onboarding handshake metadata package to the Express server backend
-      await apiRequest("/api/auth/verify", {
+      const response = await apiRequest("/api/auth/verify", {
         method: "POST",
         body: JSON.stringify({
           name: formData.name,
@@ -83,8 +85,20 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
         }),
       });
 
+      /* CRITICAL FIX HERE:
+         Parse from response.user?.role instead of response.role
+      */
+      const assignedRole = response.user?.role;
+      if (assignedRole) {
+        localStorage.setItem("batchFundUserRole", assignedRole);
+      }
+
       // Clear layout triggers on total registration lifecycle success
       if (onClose) onClose();
+
+      // Redirect user to portal to run smart redirection routing
+      navigate("/portal");
+
     } catch (err) {
       console.error("Registration structural workflow catch error:", err);
       setErrors({
@@ -100,7 +114,21 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
       <div className="register-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="register-title">Sign Up</h2>
 
-        {errors.submit && <div className="auth-error" style={{ color: "#d93838", backgroundColor: "#fff0f0", padding: "10px", borderRadius: "4px", marginBottom: "15px", fontSize: "14px" }}>{errors.submit}</div>}
+        {errors.submit && (
+          <div
+            className="auth-error"
+            style={{
+              color: "#d93838",
+              backgroundColor: "#fff0f0",
+              padding: "10px",
+              borderRadius: "4px",
+              marginBottom: "15px",
+              fontSize: "14px"
+            }}
+          >
+            {errors.submit}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="register-form">
           {/* Name */}
@@ -272,7 +300,10 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
 
         <p className="login-text">
           Already have an account?{" "}
-          <span className="login-link" onClick={!submitting ? onSwitchToLogin : undefined}>
+          <span
+            className="login-link"
+            onClick={!submitting ? onSwitchToLogin : undefined}
+          >
             Login
           </span>
         </p>

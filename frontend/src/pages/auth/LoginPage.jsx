@@ -31,13 +31,14 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
       });
 
       // Harmonize older dashboard requirements by setting both storage parameters uniformly
-      localStorage.setItem("batchFundUserRole", userProfile.role);
+      const assignedRole = userProfile.user?.role;
+      localStorage.setItem("batchFundUserRole", assignedRole);
 
       // Close modal popup interface elements
       if (onClose) onClose();
 
       // Step 3: Smart Routing gate redirection execution
-      if (userProfile.role === "admin") {
+      if (assignedRole === "admin") {
         navigate("/admin");
       } else {
         navigate("/landing");
