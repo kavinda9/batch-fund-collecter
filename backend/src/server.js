@@ -5,6 +5,7 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import "./config/firebase.js";
 import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 
 const app = express()
@@ -17,6 +18,7 @@ app.use(morgan('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 // Health check
