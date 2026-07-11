@@ -2,6 +2,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import contributionRoutes from './routes/contributionRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
 
@@ -11,6 +14,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+
 // Global Middleware
 app.use(cors()); // Enable Cross-Origin Resource Sharing for frontend access
 app.use(express.json()); // Enable JSON body parsing for inbound payloads
@@ -18,6 +26,7 @@ app.use(express.json()); // Enable JSON body parsing for inbound payloads
 // Application Route Gateways
 app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/contributions', contributionRoutes);
 
 // Base System Health-Check Route
 app.get('/health', (req, res) => {
