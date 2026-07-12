@@ -1,0 +1,238 @@
+@font-face {
+  font-family: "FrontFont";
+  src: url("../../assets/front1.ttf") format("truetype");
+}
+
+/* ============================================================
+   HOME PAGE — PARALLAX SCROLL LAYOUT
+   Structure:
+   - .bg-fixed        → fixed background, always behind everything
+   - .home-nav        → fixed nav bar
+   - .hero-spacer     → 100vh of invisible scroll space for the animation
+   - .parallax-layer  → fixed overlay, transforms driven by JS scroll progress
+   - .about-section   → normal document flow, appears after hero exits
+   ============================================================ */
+
+.home-container {
+  width: 100%;
+  position: relative;
+  /* Must be at least 2× viewport so there's room to scroll through the hero
+     animation AND land on the about section */
+  min-height: 200vh;
+}
+
+/* Fixed background layer — never moves */
+.bg-fixed {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* ── Navigation ─────────────────────────────────────────── */
+.home-nav {
+  position: fixed;
+  top: 24px;
+  right: 40px;
+  display: flex;
+  gap: 48px;
+  z-index: 100;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: opacity 0.2s ease;
+}
+
+.nav-btn:hover {
+  opacity: 0.7;
+}
+
+/* ── Scroll Spacer ──────────────────────────────────────── */
+/* Gives the pinned hero animation exactly one viewport to play out.
+   The parallax-layer sits on top (fixed), so this spacer is invisible
+   but creates the scrollable distance. */
+.hero-spacer {
+  height: 100vh;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* ── Parallax Layer ─────────────────────────────────────── */
+/* Fixed to the viewport. All hero elements live here and are
+   animated via inline transforms driven by scroll progress. */
+.parallax-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ── Hero Headings ──────────────────────────────────────── */
+.heading-batch-fund {
+  position: absolute;
+  top: 18%;
+  left: 30%;
+  font-family: "FrontFont", sans-serif;
+  font-size: 10rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  text-align: left;
+  will-change: transform, opacity;
+  white-space: nowrap;
+}
+
+.heading-collector {
+  position: absolute;
+  top: 40%;
+  left: 53%;
+  font-family: "FrontFont", sans-serif;
+  font-size: 8rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  text-align: left;
+  will-change: transform, opacity;
+  white-space: nowrap;
+}
+
+/* ── Image 1 (bottom-left, exits left on scroll) ────────── */
+.home-image-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  will-change: transform, opacity;
+}
+
+.home-image {
+  width: 760px;
+  max-width: 80vw;
+  display: block;
+}
+
+/* ── Image 2 (bottom-right, enters from right on scroll) ── */
+.image2-wrapper {
+  position: absolute;
+  bottom: 0;
+  right: 50px;
+  will-change: transform;
+}
+
+.image2 {
+  width: 353px;
+  max-width: 27vw;
+  display: block;
+}
+
+/* ── "About" heading (rises up from below on scroll) ─────── */
+.heading-about {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  /* transform-X(-50%) is baked in via JS: translate(-50%, Yvh) */
+  font-family: "FrontFont", sans-serif;
+  font-size: 7rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+
+/* ── About Section ──────────────────────────────────────── */
+/* Normal document-flow content that scrolls underneath the
+   fixed parallax layer once the hero transition finishes. */
+.about-section {
+  position: relative;
+  z-index: 20;
+  /* above parallax layer so it receives pointer events */
+  padding-top: 35vh;
+  padding-bottom: 20vh;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-content {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 40px;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.about-mission-title {
+  font-family: "FrontFont", sans-serif;
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.about-mission-desc {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 700px;
+  margin-bottom: 2rem;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+  width: fit-content;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contact-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  color: #1a1a2e;
+  /* dark color to show the icon inside white circle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.contact-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.contact-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}

@@ -1,11 +1,23 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, resolve, join } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+dotenv.config({ path: resolve(__dirname, '../.env') })
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import "./config/firebase.js";
+import authRoutes from "./routes/authRoutes.js";
+import slipRoutes from "./routes/slipRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+
 
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5001
 
 // Middleware
 app.use(helmet())
@@ -13,6 +25,16 @@ app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
 app.use(morgan('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// Serve uploaded slip images statically
+app.use('/uploads', express.static(join(__dirname, '../uploads')))
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/slips", slipRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/user", userRoutes);
+
 
 // Health check
 app.get('/health', (req, res) => {
