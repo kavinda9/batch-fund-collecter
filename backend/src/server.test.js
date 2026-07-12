@@ -1,3 +1,25 @@
+
+jest.mock('firebase-admin', () => ({
+  initializeApp: jest.fn(),
+  credential: {
+    cert: jest.fn(() => ({})),
+  },
+  firestore: jest.fn(() => ({
+    collection: jest.fn(() => ({
+      doc: jest.fn(() => ({
+        get: jest.fn(() => Promise.resolve({ exists: true, data: () => ({}) })),
+        set: jest.fn(() => Promise.resolve()),
+        delete: jest.fn(() => Promise.resolve()),
+      })),
+      add: jest.fn(() => Promise.resolve({ id: 'mock-expense-id' })),
+    })),
+  })),
+  auth: jest.fn(() => ({
+    verifyIdToken: jest.fn(() => Promise.resolve({ uid: 'mocked-admin-user', admin: true })),
+  })),
+}));
+
+
 import request from 'supertest'
 import app from './server.js'
 
