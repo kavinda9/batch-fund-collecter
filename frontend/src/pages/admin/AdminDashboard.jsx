@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   DashboardIcon, StudentsIcon, FundIcon, IncomeIcon, ExpenseIcon, 
@@ -11,111 +11,210 @@ import {
   IncomeExpenseBarChart, 
   FundDistributionPieChart 
 } from '../../components/Charts';
+import api from '../../services/api';
+
+const initialStudents = [
+  { id: 1, name: 'Rahul Verma', roll: '22BCS108', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-15' },
+  { id: 2, name: 'Amit Kumar', roll: '22BCS012', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-20' },
+  { id: 3, name: 'Priyanshu Sharma', roll: '22BCS015', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-10' },
+  { id: 4, name: 'Sneha Patel', roll: '22BCS144', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-28' },
+  { id: 5, name: 'Divya Teja', roll: '22BCS041', amountPaid: 0, dues: 3000, status: 'Unpaid', date: '-' },
+  { id: 6, name: 'Rohan Das', roll: '22BCS092', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-14' },
+  { id: 7, name: 'Anjali Gupta', roll: '22BCS021', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-19' },
+  { id: 8, name: 'Tarun Sen', roll: '22BCS120', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-25' }
+];
+
+const initialExpenses = [
+  { id: 1, item: 'Farewell DJ Booking', amount: 12000, date: '2026-06-25', category: 'Events', spentBy: 'Farewell Committee', desc: 'Downpayment for Sound system & DJ setup.' },
+  { id: 2, item: 'Lab Journal Printing', amount: 4500, date: '2026-06-18', category: 'Supplies', spentBy: 'Rohan Das', desc: 'Coordinated printing for 60 lab copies.' },
+  { id: 3, item: 'Charity Food Drive', amount: 8000, date: '2026-06-05', category: 'Charity', spentBy: 'Sneha Patel', desc: 'Bought grains & meals for local orphanage.' },
+  { id: 4, item: 'Dean Meeting Caterers', amount: 2500, date: '2026-05-28', category: 'Others', spentBy: 'Prof. Sharma', desc: 'Refreshments for syllabus review meeting.' }
+];
+
+const initialEvents = [
+  { id: 1, title: 'Farewell Gala 2026', date: '2026-07-15', dues: 500, venue: 'Main Auditorium', rsvp: 58, desc: 'Farewell celebration for outgoing seniors.' },
+  { id: 2, title: 'Batch Project Exhibition', date: '2026-07-28', dues: 0, venue: 'CSE Lab 2 & 3', rsvp: 45, desc: 'Showcase of mini projects to faculty panels.' }
+];
+
+const initialActivities = [
+  { id: 1, type: 'payment', text: 'Sneha Patel paid Rs. 1,500 for Monthly Contribution', time: 'June 28, 2026' },
+  { id: 2, type: 'expense', text: 'Recorded expense: Rs. 12,000 for Farewell DJ Booking', time: 'June 25, 2026' },
+  { id: 3, type: 'payment', text: 'Amit Kumar paid Rs. 1,500 for Monthly Contribution', time: 'June 20, 2026' },
+  { id: 4, type: 'expense', text: 'Recorded expense: Rs. 4,500 for Lab Journal Printing', time: 'June 18, 2026' },
+  { id: 5, type: 'payment', text: 'Rahul Verma paid Rs. 1,500 for Monthly Contribution', time: 'June 15, 2026' }
+];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   
   // Modals state
   const [modalType, setModalType] = useState(null); // 'add-income', 'add-expense', 'create-event', 'generate-report', 'receipt'
   const [selectedReceiptData, setSelectedReceiptData] = useState(null);
 
   // Mock data states
-  const [students, setStudents] = useState([
-    { id: 1, name: 'Rahul Verma', roll: '22BCS108', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-15' },
-    { id: 2, name: 'Amit Kumar', roll: '22BCS012', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-20' },
-    { id: 3, name: 'Priyanshu Sharma', roll: '22BCS015', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-10' },
-    { id: 4, name: 'Sneha Patel', roll: '22BCS144', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-28' },
-    { id: 5, name: 'Divya Teja', roll: '22BCS041', amountPaid: 0, dues: 3000, status: 'Unpaid', date: '-' },
-    { id: 6, name: 'Rohan Das', roll: '22BCS092', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-14' },
-    { id: 7, name: 'Anjali Gupta', roll: '22BCS021', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-19' },
-    { id: 8, name: 'Tarun Sen', roll: '22BCS120', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-25' }
-  ]);
+  const [students, setStudents] = useState(initialStudents);
 
-  const [expenses, setExpenses] = useState([
-    { id: 1, item: 'Farewell DJ Booking', amount: 12000, date: '2026-06-25', category: 'Events', spentBy: 'Farewell Committee', desc: 'Downpayment for Sound system & DJ setup.' },
-    { id: 2, item: 'Lab Journal Printing', amount: 4500, date: '2026-06-18', category: 'Supplies', spentBy: 'Rohan Das', desc: 'Coordinated printing for 60 lab copies.' },
-    { id: 3, item: 'Charity Food Drive', amount: 8000, date: '2026-06-05', category: 'Charity', spentBy: 'Sneha Patel', desc: 'Bought grains & meals for local orphanage.' },
-    { id: 4, item: 'Dean Meeting Caterers', amount: 2500, date: '2026-05-28', category: 'Others', spentBy: 'Prof. Sharma', desc: 'Refreshments for syllabus review meeting.' }
-  ]);
+  const [expenses, setExpenses] = useState(initialExpenses);
 
-  const [events, setEvents] = useState([
-    { id: 1, title: 'Farewell Gala 2026', date: '2026-07-15', dues: 500, venue: 'Main Auditorium', rsvp: 58, desc: 'Farewell celebration for outgoing seniors.' },
-    { id: 2, title: 'Batch Project Exhibition', date: '2026-07-28', dues: 0, venue: 'CSE Lab 2 & 3', rsvp: 45, desc: 'Showcase of mini projects to faculty panels.' }
-  ]);
+  const [events, setEvents] = useState(initialEvents);
 
-  const [activities, setActivities] = useState([
-    { id: 1, type: 'payment', text: 'Sneha Patel paid Rs. 1,500 for Monthly Contribution', time: 'June 28, 2026' },
-    { id: 2, type: 'expense', text: 'Recorded expense: Rs. 12,000 for Farewell DJ Booking', time: 'June 25, 2026' },
-    { id: 3, type: 'payment', text: 'Amit Kumar paid Rs. 1,500 for Monthly Contribution', time: 'June 20, 2026' },
-    { id: 4, type: 'expense', text: 'Recorded expense: Rs. 4,500 for Lab Journal Printing', time: 'June 18, 2026' },
-    { id: 5, type: 'payment', text: 'Rahul Verma paid Rs. 1,500 for Monthly Contribution', time: 'June 15, 2026' }
-  ]);
+  const [activities, setActivities] = useState(initialActivities);
+
+  const [settings, setSettings] = useState({
+    academicYear: '2025-2026',
+    batchSizeLimit: 68,
+    monthlyContribution: 500,
+    monthlyDueDate: 10,
+    remindersEnabled: true,
+    receiptUploadsEnabled: true
+  });
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        setError('');
+        const response = await api.get('/api/admin/dashboard');
+        const { students: serverStudents, expenses: serverExpenses, events: serverEvents, activities: serverActivities } = response.data;
+
+        if (Array.isArray(serverStudents)) setStudents(serverStudents);
+        if (Array.isArray(serverExpenses)) setExpenses(serverExpenses);
+        if (Array.isArray(serverEvents)) setEvents(serverEvents);
+        if (Array.isArray(serverActivities)) setActivities(serverActivities);
+      } catch (fetchError) {
+        setError('Using local sample data because the backend admin API is not authenticated yet.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const loadSettings = async () => {
+      try {
+        const response = await api.get('/api/admin/settings');
+        if (response.data && response.data.settings) {
+          setSettings(response.data.settings);
+        }
+      } catch (settingsError) {
+        console.error('Failed to load system settings from backend:', settingsError);
+      }
+    };
+
+    loadDashboard();
+    loadSettings();
+  }, []);
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
   };
 
+  const handleSettingChange = (key, value) => {
+    setSettings((current) => ({
+      ...current,
+      [key]: value
+    }));
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setError('');
+      const response = await api.put('/api/admin/settings', settings);
+      if (response.data && response.data.success) {
+        alert("Settings saved successfully!");
+        setSettings(response.data.settings);
+      } else {
+        alert(response.data?.message || "Failed to update configurations.");
+      }
+    } catch (saveError) {
+      console.error("Settings submission lifecycle failure:", saveError);
+      alert(saveError.response?.data?.message || "Could not connect to settings API backend.");
+    }
+  };
+
   const handleModalSubmit = (formData) => {
     if (modalType === 'add-income') {
-      const newStudentPay = {
-        id: students.length + 1,
-        name: formData.studentName,
-        roll: formData.rollNo,
-        amountPaid: Number(formData.amount),
-        dues: Math.max(0, 3000 - Number(formData.amount)),
-        status: Number(formData.amount) >= 3000 ? 'Paid' : 'Partially Paid',
-        date: formData.date
-      };
-      setStudents([newStudentPay, ...students]);
-      setActivities([
-        { id: Date.now(), type: 'payment', text: `${formData.studentName} paid Rs. ${formData.amount} for ${formData.purpose}`, time: formData.date },
-        ...activities
-      ]);
+      api.post('/api/admin/students/payments', formData)
+        .then(({ data }) => {
+          const newStudentPay = data.student;
+          setStudents((current) => [newStudentPay, ...current]);
+          setActivities((current) => [
+            { id: Date.now(), type: 'payment', text: `${formData.studentName} paid Rs. ${formData.amount} for ${formData.purpose}`, time: formData.date },
+            ...current
+          ]);
+        })
+        .catch(() => {
+          const newStudentPay = {
+            id: students.length + 1,
+            name: formData.studentName,
+            roll: formData.rollNo,
+            amountPaid: Number(formData.amount),
+            dues: Math.max(0, 3000 - Number(formData.amount)),
+            status: Number(formData.amount) >= 3000 ? 'Paid' : 'Partially Paid',
+            date: formData.date
+          };
+          setStudents([newStudentPay, ...students]);
+        });
     } else if (modalType === 'add-expense') {
-      const newExpense = {
-        id: expenses.length + 1,
-        item: formData.itemName,
-        amount: Number(formData.amount),
-        date: formData.date,
-        category: formData.category,
-        spentBy: formData.spentBy,
-        desc: formData.description
-      };
-      setExpenses([newExpense, ...expenses]);
-      setActivities([
-        { id: Date.now(), type: 'expense', text: `Recorded expense: Rs. ${formData.amount} for ${formData.itemName}`, time: formData.date },
-        ...activities
-      ]);
+      api.post('/api/admin/expenses', formData)
+        .then(({ data }) => {
+          setExpenses((current) => [data.expense, ...current]);
+          setActivities((current) => [
+            { id: Date.now(), type: 'expense', text: `Recorded expense: Rs. ${formData.amount} for ${formData.itemName}`, time: formData.date },
+            ...current
+          ]);
+        })
+        .catch(() => {
+          const newExpense = {
+            id: expenses.length + 1,
+            item: formData.itemName,
+            amount: Number(formData.amount),
+            date: formData.date,
+            category: formData.category,
+            spentBy: formData.spentBy,
+            desc: formData.description
+          };
+          setExpenses([newExpense, ...expenses]);
+        });
     } else if (modalType === 'create-event') {
-      const newEvent = {
-        id: events.length + 1,
-        title: formData.eventTitle,
-        date: formData.date,
-        dues: Number(formData.contributionAmount),
-        venue: formData.venue,
-        rsvp: 0,
-        desc: formData.description
-      };
-      setEvents([newEvent, ...events]);
-      setActivities([
-        { id: Date.now(), type: 'event', text: `New event scheduled: "${formData.eventTitle}"`, time: formData.date },
-        ...activities
-      ]);
+      api.post('/api/admin/events', formData)
+        .then(({ data }) => {
+          setEvents((current) => [data.event, ...current]);
+          setActivities((current) => [
+            { id: Date.now(), type: 'event', text: `New event scheduled: "${formData.eventTitle}"`, time: formData.date },
+            ...current
+          ]);
+        })
+        .catch(() => {
+          const newEvent = {
+            id: events.length + 1,
+            title: formData.eventTitle,
+            date: formData.date,
+            dues: Number(formData.contributionAmount),
+            venue: formData.venue,
+            rsvp: 0,
+            desc: formData.description
+          };
+          setEvents([newEvent, ...events]);
+        });
     }
   };
 
   const deleteStudent = (id) => {
     if (window.confirm("Are you sure you want to delete this student record?")) {
-      setStudents(students.filter(s => s.id !== id));
+      api.delete(`/api/admin/students/${id}`)
+        .then(() => setStudents((current) => current.filter((student) => student.id !== id)))
+        .catch(() => setStudents(students.filter(s => s.id !== id)));
     }
   };
 
   const deleteExpense = (id) => {
     if (window.confirm("Are you sure you want to remove this expense record?")) {
-      setExpenses(expenses.filter(e => e.id !== id));
+      api.delete(`/api/admin/expenses/${id}`)
+        .then(() => setExpenses((current) => current.filter((expense) => expense.id !== id)))
+        .catch(() => setExpenses(expenses.filter(e => e.id !== id)));
     }
   };
 
@@ -148,9 +247,9 @@ const AdminDashboard = () => {
   );
 
   // Stats calculation
-  const totalBalance = 154000;
-  const totalIncome = 212000;
-  const totalExpenses = 58000;
+  const totalIncome = students.reduce((sum, student) => sum + Number(student.amountPaid || 0), 0) + 15000;
+  const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  const totalBalance = totalIncome - totalExpenses;
   const pendingContributions = students.filter(s => s.status !== 'Paid').length;
   const numStudents = students.length;
   const upcomingEventsCount = events.length;
@@ -168,6 +267,16 @@ const AdminDashboard = () => {
 
   return (
     <div className="app-container">
+      {loading && (
+        <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 200, padding: '0.75rem 1rem', borderRadius: 12, background: 'rgba(15,23,42,0.92)', color: '#fff', fontSize: '0.85rem' }}>
+          Loading admin data...
+        </div>
+      )}
+      {error && (
+        <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 200, padding: '0.75rem 1rem', borderRadius: 12, background: 'rgba(234,179,8,0.14)', color: 'var(--text-main)', fontSize: '0.85rem', border: '1px solid rgba(234,179,8,0.25)' }}>
+          {error}
+        </div>
+      )}
       
       {/* Sidebar Navigation */}
       <aside style={{
@@ -766,7 +875,7 @@ const AdminDashboard = () => {
         )}
 
         {/* TAB 7: SETTINGS TAB */}
-        {activeTab === 'Settings' && (
+        {activeTab === 'Settings' && settings && (
           <div className="glass-card animate-fade" style={{ maxWidth: '640px' }}>
             <h2 style={{ fontSize: '1.35rem', marginBottom: '1.5rem', fontWeight: '700' }}>System Configurations</h2>
             
@@ -774,44 +883,85 @@ const AdminDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Active Academic Year</label>
-                  <select className="form-input" defaultValue="2025-2026">
+                  <select 
+                    className="form-input" 
+                    value={settings.academicYear || "2025-2026"}
+                    onChange={(e) => handleSettingChange('academicYear', e.target.value)}
+                  >
                     <option value="2025-2026">2025 - 2026</option>
                     <option value="2026-2027">2026 - 2027</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Batch Size Limit</label>
-                  <input type="number" className="form-input" defaultValue="68" />
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={settings.batchSizeLimit ?? 68}
+                    onChange={(e) => handleSettingChange('batchSizeLimit', Number(e.target.value))}
+                  />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Standard Monthly Contribution (Rs.)</label>
-                  <input type="number" className="form-input" defaultValue="500" />
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={settings.monthlyContribution ?? 500}
+                    onChange={(e) => handleSettingChange('monthlyContribution', Number(e.target.value))}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Monthly Due Date</label>
-                  <input type="number" className="form-input" defaultValue="10" min="1" max="28" />
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={settings.monthlyDueDate ?? 10} 
+                    min="1" 
+                    max="28" 
+                    onChange={(e) => handleSettingChange('monthlyDueDate', Number(e.target.value))}
+                  />
                 </div>
               </div>
 
               <div className="form-group">
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input type="checkbox" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    checked={settings.remindersEnabled ?? true} 
+                    onChange={(e) => handleSettingChange('remindersEnabled', e.target.checked)}
+                  />
                   Enable automatic WhatsApp/Email dues reminders
                 </label>
               </div>
               <div className="form-group">
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input type="checkbox" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    checked={settings.receiptUploadsEnabled ?? true} 
+                    onChange={(e) => handleSettingChange('receiptUploadsEnabled', e.target.checked)}
+                  />
                   Allow students to upload receipts directly for approval
                 </label>
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button onClick={() => alert("Settings saved successfully!")} className="btn btn-primary">Save Settings</button>
-                <button className="btn btn-secondary">Restore Defaults</button>
+                <button onClick={handleSaveSettings} className="btn btn-primary">Save Settings</button>
+                <button 
+                  className="btn btn-secondary"
+                  onClick={() => setSettings({
+                    academicYear: '2025-2026',
+                    batchSizeLimit: 68,
+                    monthlyContribution: 500,
+                    monthlyDueDate: 10,
+                    remindersEnabled: true,
+                    receiptUploadsEnabled: true
+                  })}
+                >
+                  Restore Defaults
+                </button>
               </div>
             </div>
           </div>

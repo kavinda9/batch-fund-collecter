@@ -1,4 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth.js";
+import { apiRequest } from "../../utils/api.js";
 import "./LandingPage.css";
 
 // Landing.jsx
@@ -11,15 +14,65 @@ import "./LandingPage.css";
 
 export default function Landing() {
     const navigate = useNavigate();
+    const { user, logout } = useAuth();
+    const [profile, setProfile] = useState(null);
+    const [activeCampaigns, setActiveCampaigns] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    // Mock authenticated user details matching the Member dashboard mock data
-    const displayName = "Rahul Verma";
+    useEffect(() => {
+        const loadLandingData = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setError('');
+                const [verifiedProfile, campaignResponse] = await Promise.all([
+                    apiRequest('/api/auth/verify', { method: 'POST' }),
+                    apiRequest('/api/campaigns', { method: 'GET' })
+                ]);
+
+                setProfile(verifiedProfile?.user || null);
+                setActiveCampaigns(Array.isArray(campaignResponse?.campaigns) ? campaignResponse.campaigns : []);
+            } catch (requestError) {
+                console.error('Landing page data load failed:', requestError);
+                setError(requestError.message || 'Failed to load your landing page data.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadLandingData();
+    }, [user]);
+
+    const displayName = useMemo(() => {
+        const fallbackName = user?.displayName || user?.email?.split('@')[0] || 'Member';
+        return profile?.name || fallbackName;
+    }, [profile, user]);
+
+    const activeCampaign = activeCampaigns[0] || null;
+    const targetGoal = Number(activeCampaign?.targetGoal || 0);
+    const collectedAmount = Number(activeCampaign?.currentCollected || 0);
+    const collectionProgress = targetGoal > 0 ? Math.min(100, Math.round((collectedAmount / targetGoal) * 100)) : 0;
+    const paymentDueDate = activeCampaign?.endDate
+        ? new Date(activeCampaign.endDate).toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        })
+        : 'No active deadline';
+    const activeBatchLabel = activeCampaign?.title || 'Batch fund campaign';
 
     const handleGoToDashboard = () => {
         navigate("/member");
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        if (logout) {
+            await logout();
+        }
         navigate("/");
     };
 
@@ -60,10 +113,13 @@ export default function Landing() {
                     </svg>
 
                     <p className="landing-eyebrow">Welcome back</p>
-                    <h1 className="landing-title">Hi {displayName},</h1>
+                    <h1 className="landing-title">
+                        {loading ? 'Loading your account...' : `Hi ${displayName},`}
+                    </h1>
                     <p className="landing-subtitle">
-                        Your batch fund group is moving forward. Head to your dashboard
-                        to check your contribution status or make a payment.
+                        {error
+                            ? error
+                            : 'Your batch fund group is moving forward. Head to your dashboard to check your contribution status or make a payment.'}
                     </p>
 
                     <div className="landing-cta-group" style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center" }}>
@@ -81,21 +137,25 @@ export default function Landing() {
                 <section className="landing-glance" aria-label="Quick glance">
                     <div className="landing-chip">
                         <span className="landing-chip-label">Active batch</span>
-                        <span className="landing-chip-value">Batch #04</span>
+                        <span className="landing-chip-value">{activeBatchLabel}</span>
                     </div>
                     <div className="landing-chip">
                         <span className="landing-chip-label">Next payment due</span>
-                        <span className="landing-chip-value">—</span>
+                        <span className="landing-chip-value">{paymentDueDate}</span>
                     </div>
                     <div className="landing-chip">
                         <span className="landing-chip-label">Contributed so far</span>
-                        <span className="landing-chip-value">—</span>
+                        <span className="landing-chip-value">
+                            Rs. {collectedAmount.toLocaleString()}
+                            <span style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: 'var(--landing-text-muted)' }}>
+                                {collectionProgress}% of Rs. {targetGoal.toLocaleString() || '0'}
+                            </span>
+                        </span>
                     </div>
                 </section>
 
                 <p className="landing-footnote">
-                    Real figures load once your dashboard connects to your batch fund
-                    data.
+                    Figures are sourced from your verified session and the active campaign ledger.
                 </p>
             </main>
         </div>
