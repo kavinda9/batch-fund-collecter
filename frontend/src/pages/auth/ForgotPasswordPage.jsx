@@ -1,20 +1,39 @@
 import React, { useState } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
 import "./ForgotPasswordPage.css";
 
 const ForgotPasswordPage = ({ onClose, onSwitchToLogin }) => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) {
       setError("Please enter your email address.");
       return;
     }
-    // Firebase reset password logic will go here later
-    console.log("Reset password for:", email);
-    setSubmitted(true);
+    setError("");
+    setIsLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Password reset error:", err);
+      if (err.code === "auth/user-not-found") {
+        setError("No account found with this email address.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many attempts. Please wait a moment and try again.");
+      } else {
+        setError("Failed to send reset email. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -42,8 +61,8 @@ const ForgotPasswordPage = ({ onClose, onSwitchToLogin }) => {
                 {error && <span className="error">{error}</span>}
               </div>
 
-              <button type="submit" className="forgot-btn">
-                Send Reset Link
+              <button type="submit" className="forgot-btn" disabled={isLoading}>
+                {isLoading ? "Sending..." : "Send Reset Link"}
               </button>
             </form>
 

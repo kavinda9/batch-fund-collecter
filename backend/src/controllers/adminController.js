@@ -1,195 +1,528 @@
-import store from "../services/adminDashboardStore.js";
+import admin, { db } from "../config/firebase.js";
 
-const validateRequired = (fields, body) => {
-  const missingFields = fields.filter((field) => {
-    const value = body[field];
-    return value === undefined || value === null || value === '';
-  });
+// ─────────────────────────────────────────────
+// DASHBOARD STATS
+// ─────────────────────────────────────────────
 
-  if (missingFields.length > 0) {
-    return missingFields;
-  }
+/**
+ * GET /api/admin/stats
+ * Returns aggregate numbers for the dashboard overview widgets.
+ */
+const getStats = async (req, res) => {
+  try {
+    const [membersSnap, paymentsSnap, expensesSnap] = await Promise.all([
+      db.collection("users").where("role", "==", "member").get(),
+      db.collection("payments").where("status", "==", "approved").get(),
+      db.collection("expenses").get(),
+    ]);
 
-  return null;
-};
+    const totalIncome = paymentsSnap.docs.reduce(
+      (sum, d) => sum + (d.data().amount || 0),
+      0
+    );
+    const totalExpenses = expensesSnap.docs.reduce(
+      (sum, d) => sum + (d.data().amount || 0),
+      0
+    );
+    const totalBalance = totalIncome - totalExpenses;
 
-const getDashboard = async (req, res) => {
-  const snapshot = await store.getDashboardSnapshot();
+    // Count members with at least one pending payment
+    const pendingSnap = await db
+      .collection("payments")
+      .where("status", "==", "pending")
+      .get();
+    const pendingCount = pendingSnap.size;
 
-  res.status(200).json({
-    success: true,
-    message: 'Admin dashboard loaded',
-    ...snapshot
-  });
-};
+    // Recent activity: last 10 approved payments + last 5 expenses, sorted by date
+    const recentPayments = paymentsSnap.docs
+      .slice(-10)
+      .map((d) => ({
+        id: d.id,
+        type: "payment",
+        text: `${d.data().name} paid Rs. ${d.data().amount?.toLocaleString()} for batch fund`,
+        time: d.data().createdAt?.toDate?.()?.toLocaleDateString("en-GB") || "",
+      }));
 
-const getStudents = async (req, res) => {
-  const students = await store.getStudents();
+    const recentExpenses = expensesSnap.docs.slice(-5).map((d) => ({
+      id: d.id,
+      type: "expense",
+      text: `Recorded expense: Rs. ${d.data().amount?.toLocaleString()} for ${d.data().item}`,
+      time: d.data().date || "",
+    }));
 
-  res.status(200).json({
-    success: true,
-    students
-  });
-};
+    const recentActivity = [...recentPayments, ...recentExpenses]
+      .sort((a, b) => (a.time < b.time ? 1 : -1))
+      .slice(0, 8);
 
-const addStudentPayment = async (req, res) => {
-  const missingFields = validateRequired(['studentName', 'rollNo', 'amount'], req.body);
-
-  if (missingFields) {
-    return res.status(400).json({
-      success: false,
-      message: `Missing required fields: ${missingFields.join(', ')}`
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalBalance,
+        totalIncome,
+        totalExpenses,
+        pendingCount,
+        memberCount: membersSnap.size,
+        recentActivity,
+      },
     });
+  } catch (error) {
+    console.error("getStats error:", error);
+    return res.status(500).json({ success: false, message: "Failed to load stats.", error: error.message });
   }
-
-  const student = await store.createStudentPayment(req.body);
-
-  return res.status(201).json({
-    success: true,
-    message: 'Student payment recorded',
-    student
-  });
 };
 
-const deleteStudentRecord = async (req, res) => {
-  const removed = await store.deleteStudent(req.params.id);
+// ─────────────────────────────────────────────
+// SLIP REVIEW
+// ─────────────────────────────────────────────
 
-  if (!removed) {
-    return res.status(404).json({
-      success: false,
-      message: 'Student record not found'
+/**
+ * GET /api/admin/slips
+ * Returns all payment submissions (all statuses), newest first.
+ */
+const getAllSlips = async (req, res) => {
+  try {
+    const { status } = req.query; // optional filter: pending | approved | rejected
+    let query = db.collection("payments");
+    if (status) query = query.where("status", "==", status);
+
+    const snap = await query.get();
+    const payments = snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
+      };
     });
-  }
 
-  return res.status(200).json({
-    success: true,
-    message: 'Student record deleted',
-    student: removed
-  });
+    // Sort descending by createdAt in memory
+    payments.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : Date.now();
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : Date.now();
+      return timeB - timeA;
+    });
+
+    return res.status(200).json({ success: true, payments });
+  } catch (error) {
+    console.error("getAllSlips error:", error);
+    return res.status(500).json({ success: false, message: "Failed to load slips.", error: error.message });
+  }
 };
 
+/**
+ * PATCH /api/admin/slips/:id/approve
+ * Sets payment status to "approved".
+ */
+const approveSlip = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const docRef = db.collection("payments").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, message: "Payment record not found." });
+    }
+
+    await docRef.update({
+      status: "approved",
+      reviewedAt: admin.firestore.FieldValue.serverTimestamp(),
+      reviewedBy: req.user.uid,
+      adminNote: "",
+    });
+
+    return res.status(200).json({ success: true, message: "Slip approved successfully." });
+  } catch (error) {
+    console.error("approveSlip error:", error);
+    return res.status(500).json({ success: false, message: "Failed to approve slip.", error: error.message });
+  }
+};
+
+/**
+ * PATCH /api/admin/slips/:id/reject
+ * Body: { adminNote: string }
+ * Sets payment status to "rejected".
+ */
+const rejectSlip = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminNote = "" } = req.body;
+
+    const docRef = db.collection("payments").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, message: "Payment record not found." });
+    }
+
+    await docRef.update({
+      status: "rejected",
+      adminNote,
+      reviewedAt: admin.firestore.FieldValue.serverTimestamp(),
+      reviewedBy: req.user.uid,
+    });
+
+    return res.status(200).json({ success: true, message: "Slip rejected." });
+  } catch (error) {
+    console.error("rejectSlip error:", error);
+    return res.status(500).json({ success: false, message: "Failed to reject slip.", error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// MEMBER MANAGEMENT
+// ─────────────────────────────────────────────
+
+/**
+ * GET /api/admin/members
+ * Returns all registered members (role === "member") with their payment summary.
+ */
+const getMembers = async (req, res) => {
+  try {
+    const usersSnap = await db.collection("users").where("role", "==", "member").get();
+
+    // Fetch approved payments to compute totals per user
+    const paymentsSnap = await db
+      .collection("payments")
+      .where("status", "==", "approved")
+      .get();
+
+    const paymentsByUid = {};
+    paymentsSnap.docs.forEach((d) => {
+      const { uid, amount, createdAt } = d.data();
+      if (!paymentsByUid[uid]) paymentsByUid[uid] = { totalPaid: 0, lastDate: null };
+      paymentsByUid[uid].totalPaid += amount || 0;
+      const dateStr = createdAt?.toDate?.()?.toISOString?.() || null;
+      if (!paymentsByUid[uid].lastDate || dateStr > paymentsByUid[uid].lastDate) {
+        paymentsByUid[uid].lastDate = dateStr;
+      }
+    });
+
+    const members = usersSnap.docs.map((d) => {
+      const data = d.data();
+      const pInfo = paymentsByUid[data.uid] || { totalPaid: 0, lastDate: null };
+      return {
+        uid: data.uid,
+        name: data.name,
+        email: data.email,
+        regNumber: data.regNumber,
+        degreeProgram: data.degreeProgram,
+        batch: data.batch,
+        contactNumber: data.contactNumber,
+        amountPaid: pInfo.totalPaid,
+        lastPaymentDate: pInfo.lastDate
+          ? new Date(pInfo.lastDate).toLocaleDateString("en-GB")
+          : "-",
+        status:
+          pInfo.totalPaid === 0
+            ? "Unpaid"
+            : pInfo.totalPaid < 3000
+              ? "Partially Paid"
+              : "Paid",
+      };
+    });
+
+    return res.status(200).json({ success: true, members });
+  } catch (error) {
+    console.error("getMembers error:", error);
+    return res.status(500).json({ success: false, message: "Failed to load members.", error: error.message });
+  }
+};
+
+/**
+ * DELETE /api/admin/members/:uid
+ * Deletes the user from Firebase Auth and Firestore.
+ */
+const deleteMember = async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    // Prevent deleting own account
+    if (uid === req.user.uid) {
+      return res.status(400).json({ success: false, message: "You cannot delete your own admin account." });
+    }
+
+    await admin.auth().deleteUser(uid);
+    await db.collection("users").doc(uid).delete();
+
+    return res.status(200).json({ success: true, message: "Member deleted successfully." });
+  } catch (error) {
+    console.error("deleteMember error:", error);
+    return res.status(500).json({ success: false, message: "Failed to delete member.", error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// EXPENSE MANAGEMENT
+// ─────────────────────────────────────────────
+
+/**
+ * GET /api/admin/expenses
+ * Returns all expenses, newest first.
+ */
 const getExpenses = async (req, res) => {
-  const expenses = await store.getExpenses();
-
-  res.status(200).json({
-    success: true,
-    expenses
-  });
-};
-
-const addExpense = async (req, res) => {
-  const missingFields = validateRequired(['itemName', 'amount', 'date', 'category', 'spentBy'], req.body);
-
-  if (missingFields) {
-    return res.status(400).json({
-      success: false,
-      message: `Missing required fields: ${missingFields.join(', ')}`
-    });
+  try {
+    const snap = await db.collection("expenses").orderBy("createdAt", "desc").get();
+    const expenses = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    return res.status(200).json({ success: true, expenses });
+  } catch (error) {
+    console.error("getExpenses error:", error);
+    return res.status(500).json({ success: false, message: "Failed to load expenses.", error: error.message });
   }
-
-  const expense = await store.createExpense(req.body);
-
-  return res.status(201).json({
-    success: true,
-    message: 'Expense recorded',
-    expense
-  });
 };
 
-const deleteExpenseRecord = async (req, res) => {
-  const removed = await store.deleteExpense(req.params.id);
+/**
+ * POST /api/admin/expenses
+ * Body: { item, amount, date, category, spentBy, desc }
+ */
+const createExpense = async (req, res) => {
+  try {
+    const { item, amount, date, category, spentBy, desc } = req.body;
 
-  if (!removed) {
-    return res.status(404).json({
-      success: false,
-      message: 'Expense record not found'
+    if (!item || !amount || !date || !category || !spentBy) {
+      return res.status(400).json({ success: false, message: "item, amount, date, category, and spentBy are required." });
+    }
+
+    const docRef = await db.collection("expenses").add({
+      item,
+      amount: Number(amount),
+      date,
+      category,
+      spentBy,
+      desc: desc || "",
+      createdBy: req.user.uid,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-  }
 
-  return res.status(200).json({
-    success: true,
-    message: 'Expense record deleted',
-    expense: removed
-  });
+    return res.status(201).json({
+      success: true,
+      message: "Expense recorded successfully.",
+      expense: { id: docRef.id, item, amount: Number(amount), date, category, spentBy, desc },
+    });
+  } catch (error) {
+    console.error("createExpense error:", error);
+    return res.status(500).json({ success: false, message: "Failed to record expense.", error: error.message });
+  }
 };
 
+/**
+ * DELETE /api/admin/expenses/:id
+ */
+const deleteExpense = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection("expenses").doc(id).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, message: "Expense not found." });
+    }
+    await db.collection("expenses").doc(id).delete();
+    return res.status(200).json({ success: true, message: "Expense deleted." });
+  } catch (error) {
+    console.error("deleteExpense error:", error);
+    return res.status(500).json({ success: false, message: "Failed to delete expense.", error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// EVENT MANAGEMENT
+// ─────────────────────────────────────────────
+
+/**
+ * GET /api/admin/events
+ * Returns all events, newest first.
+ */
 const getEvents = async (req, res) => {
-  const events = await store.getEvents();
-
-  res.status(200).json({
-    success: true,
-    events
-  });
-};
-
-const addEvent = async (req, res) => {
-  const missingFields = validateRequired(['eventTitle', 'date', 'contributionAmount', 'venue'], req.body);
-
-  if (missingFields) {
-    return res.status(400).json({
-      success: false,
-      message: `Missing required fields: ${missingFields.join(', ')}`
-    });
+  try {
+    const snap = await db.collection("events").orderBy("createdAt", "desc").get();
+    const events = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    return res.status(200).json({ success: true, events });
+  } catch (error) {
+    console.error("getEvents error:", error);
+    return res.status(500).json({ success: false, message: "Failed to load events.", error: error.message });
   }
-
-  const event = await store.createEvent(req.body);
-
-  return res.status(201).json({
-    success: true,
-    message: 'Event created',
-    event
-  });
 };
 
-const getIncomeRecords = async (req, res) => {
-  const incomeRecords = await store.getIncomeRecords();
+/**
+ * POST /api/admin/events
+ * Body: { eventTitle, date, venue, contributionAmount, description }
+ */
+const createEvent = async (req, res) => {
+  try {
+    const { eventTitle, date, venue, contributionAmount, description } = req.body;
 
-  res.status(200).json({
-    success: true,
-    incomeRecords
-  });
+    if (!eventTitle || !date || !venue) {
+      return res.status(400).json({ success: false, message: "eventTitle, date, and venue are required." });
+    }
+
+    const docRef = await db.collection("events").add({
+      title: eventTitle,
+      date,
+      venue,
+      dues: Number(contributionAmount) || 0,
+      desc: description || "",
+      rsvp: 0,
+      createdBy: req.user.uid,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Event created successfully.",
+      event: {
+        id: docRef.id,
+        title: eventTitle,
+        date,
+        venue,
+        dues: Number(contributionAmount) || 0,
+        desc: description || "",
+        rsvp: 0,
+      },
+    });
+  } catch (error) {
+    console.error("createEvent error:", error);
+    return res.status(500).json({ success: false, message: "Failed to create event.", error: error.message });
+  }
 };
 
-const getActivities = async (req, res) => {
-  const activities = await store.getActivities();
-
-  res.status(200).json({
-    success: true,
-    activities
-  });
+/**
+ * DELETE /api/admin/events/:id
+ */
+const deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection("events").doc(id).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, message: "Event not found." });
+    }
+    await db.collection("events").doc(id).delete();
+    return res.status(200).json({ success: true, message: "Event deleted." });
+  } catch (error) {
+    console.error("deleteEvent error:", error);
+    return res.status(500).json({ success: false, message: "Failed to delete event.", error: error.message });
+  }
 };
 
-const getSettings = async (req, res) => {
-  const settings = await store.getSettings();
-
-  res.status(200).json({
-    success: true,
-    settings
-  });
+/**
+ * GET /api/admin/announcements
+ * Returns all announcements, newest first.
+ */
+const getAnnouncements = async (req, res) => {
+  try {
+    const snap = await db.collection("announcements").orderBy("createdAt", "desc").get();
+    const announcements = snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+      createdAt: d.data().createdAt?.toDate?.()?.toISOString() || null,
+    }));
+    return res.status(200).json({ success: true, announcements });
+  } catch (error) {
+    console.error("getAnnouncements (admin) error:", error);
+    return res.status(500).json({ success: false, message: "Failed to load announcements.", error: error.message });
+  }
 };
 
-const updateSettings = async (req, res) => {
-  const settings = await store.updateSettings(req.body);
+/**
+ * POST /api/admin/announcements
+ * Body: { title, content, priority }
+ */
+const createAnnouncement = async (req, res) => {
+  try {
+    const { title, content, priority = "Normal" } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ success: false, message: "title and content are required." });
+    }
 
-  res.status(200).json({
-    success: true,
-    message: 'Settings updated',
-    settings
-  });
+    const docRef = await db.collection("announcements").add({
+      title,
+      content,
+      priority,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdBy: req.user.uid,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Announcement created.",
+      announcement: { id: docRef.id, title, content, priority },
+    });
+  } catch (error) {
+    console.error("createAnnouncement error:", error);
+    return res.status(500).json({ success: false, message: "Failed to create announcement.", error: error.message });
+  }
+};
+
+/**
+ * DELETE /api/admin/announcements/:id
+ */
+const deleteAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection("announcements").doc(id).get();
+    if (!doc.exists) {
+      return res.status(404).json({ success: false, message: "Announcement not found." });
+    }
+    await db.collection("announcements").doc(id).delete();
+    return res.status(200).json({ success: true, message: "Announcement deleted." });
+  } catch (error) {
+    console.error("deleteAnnouncement error:", error);
+    return res.status(500).json({ success: false, message: "Failed to delete announcement.", error: error.message });
+  }
+};
+
+/**
+ * POST /api/admin/members/:uid/remind
+ * Creates a personal payment reminder notification for a specific member.
+ * Body: optional { message }
+ */
+const sendReminder = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { message } = req.body;
+
+    // Verify the target member exists
+    const userDoc = await db.collection("users").doc(uid).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ success: false, message: "Member not found." });
+    }
+
+    const userData = userDoc.data();
+    const reminderText = message ||
+      `Hi ${userData.name || 'Member'}, this is a reminder from the batch coordinator. Please settle your outstanding batch fund contributions as soon as possible.`;
+
+    await db.collection("notifications").add({
+      uid,                         // target member UID
+      type: "reminder",
+      title: "Payment Reminder",
+      content: reminderText,
+      sentBy: req.user.uid,
+      read: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: `Reminder sent to ${userData.name || uid}.`,
+    });
+  } catch (error) {
+    console.error("sendReminder error:", error);
+    return res.status(500).json({ success: false, message: "Failed to send reminder.", error: error.message });
+  }
 };
 
 export default {
-  getDashboard,
-  getStudents,
-  addStudentPayment,
-  deleteStudentRecord,
+  getStats,
+  getAllSlips,
+  approveSlip,
+  rejectSlip,
+  getMembers,
+  deleteMember,
   getExpenses,
-  addExpense,
-  deleteExpenseRecord,
+  createExpense,
+  deleteExpense,
   getEvents,
-  addEvent,
-  getIncomeRecords,
-  getActivities,
-  getSettings,
-  updateSettings
+  createEvent,
+  deleteEvent,
+  getAnnouncements,
+  createAnnouncement,
+  deleteAnnouncement,
+  sendReminder,
 };

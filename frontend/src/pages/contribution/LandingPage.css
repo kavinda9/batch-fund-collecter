@@ -4,6 +4,11 @@
    language already used on the User Dashboard, so the two pages feel
    like one product rather than two separate builds. */
 
+@font-face {
+    font-family: "FrontFont";
+    src: url("../../assets/front1.ttf") format("truetype");
+}
+
 :root {
     --landing-bg: #f6faf8;
     --landing-surface: #ffffff;
@@ -23,50 +28,41 @@
 
 .landing-page {
     min-height: 100vh;
-    background: var(--landing-bg);
+    background-image: url("../../assets/background2.svg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     font-family: "Inter", "Segoe UI", system-ui, sans-serif;
     color: var(--landing-text);
     display: flex;
     flex-direction: column;
 }
 
-/* ---------- Header ---------- */
+/* ---------- Header Navigation ---------- */
 
-.landing-header {
+.home-nav {
+    position: fixed;
+    top: 24px;
+    right: 40px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 32px;
+    gap: 48px;
+    z-index: 100;
 }
 
-.landing-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: "Space Grotesk", "Inter", sans-serif;
-    font-weight: 600;
-    font-size: 18px;
-}
-
-.landing-brand-mark {
-    color: var(--landing-green-500);
-    font-size: 12px;
-}
-
-.landing-logout {
-    background: transparent;
-    border: 1px solid var(--landing-border);
-    color: var(--landing-text-muted);
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 14px;
+.nav-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: 500;
+    color: #ffffff;
     cursor: pointer;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    padding: 10px 20px;
+    transition: opacity 0.2s ease;
 }
 
-.landing-logout:hover {
-    border-color: var(--landing-green-500);
-    color: var(--landing-green-700);
+.nav-btn:hover {
+    opacity: 0.7;
 }
 
 .landing-logout:focus-visible,
@@ -79,13 +75,21 @@
 
 .landing-main {
     flex: 1;
-    max-width: 720px;
+    max-width: 1200px;
     width: 100%;
-    margin: 0 auto;
-    padding: 24px 24px 64px;
+    margin: 100px auto 0;
+    padding: 24px 40px 64px;
     display: flex;
     flex-direction: column;
     gap: 28px;
+}
+
+/* Two-column grid layout */
+.landing-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
 }
 
 /* ---------- Hero ---------- */
@@ -136,9 +140,9 @@
 
 .landing-title {
     position: relative;
-    font-family: "Space Grotesk", "Inter", sans-serif;
-    font-size: clamp(28px, 4vw, 36px);
-    font-weight: 600;
+    font-family: "FrontFont", sans-serif;
+    font-size: clamp(32px, 5vw, 42px);
+    font-weight: bold;
     margin: 0 0 12px;
 }
 
@@ -193,45 +197,107 @@
 
 /* ---------- Quick glance chips ---------- */
 
-.landing-glance {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-}
+/* ---------- Logo stack (right column) ---------- */
 
-.landing-chip {
-    background: var(--landing-surface);
-    border: 1px solid var(--landing-border);
-    border-radius: var(--landing-radius-md);
-    padding: 16px 18px;
+.landing-logo-stack {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    gap: 100px;
+    /* extra gap to accommodate the overflow */
+    padding: 30px 0;
+    /* breathing room for overflowing circles */
 }
 
-.landing-chip:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(18, 128, 92, 0.1);
+.landing-logo-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--landing-radius-lg);
+    padding: 0 28px;
+    height: 90px;
+    /* card is shorter than the circle so circle overflows */
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    overflow: visible;
+    /* let the circle burst out */
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.landing-chip-label {
-    font-size: 12.5px;
-    color: var(--landing-text-muted);
+.landing-logo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
-.landing-chip-value {
-    font-family: "Space Grotesk", "Inter", sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--landing-text);
+.landing-logo-circle {
+    width: 120px;
+    /* 150% bigger than 72px original */
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    /* Pull circle up so it overflows both top and bottom of the 90px card */
+    margin-left: -10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.landing-footnote {
-    font-size: 13px;
-    color: var(--landing-text-muted);
-    text-align: center;
+.landing-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.landing-logo-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.landing-card-header {
+    font-family: "FrontFont", sans-serif;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #ffffff;
     margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.landing-card-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+}
+
+.announcement-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+}
+
+.status-value {
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.status-value.zero,
+.status-value.advance {
+    color: #4caf50;
+    /* Green */
+}
+
+.status-value.arrears {
+    color: #f44336;
+    /* Red */
 }
 
 /* ---------- Motion & responsiveness ---------- */
@@ -254,25 +320,21 @@
     }
 
     .landing-cta,
-    .landing-chip {
+    .landing-logo-card {
         transition: none;
     }
 }
 
-@media (max-width: 640px) {
-    .landing-header {
-        padding: 16px 20px;
+@media (max-width: 900px) {
+    .landing-two-col {
+        grid-template-columns: 1fr;
     }
 
     .landing-main {
-        padding: 16px 16px 48px;
+        padding: 16px 20px 48px;
     }
 
     .landing-hero {
         padding: 32px 24px;
-    }
-
-    .landing-glance {
-        grid-template-columns: 1fr;
     }
 }

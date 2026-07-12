@@ -1,56 +1,249 @@
-// backend/src/controllers/authController.js
-import { verifyIdToken, db } from '../config/firebase.js';
+import admin, { db } from "../config/firebase.js";
+import { validationResult } from "express-validator";
 
-
-export const verifyUserToken = async (req, res) => {
+const getProfile = async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const uid = req.user.uid;
+    const userDoc = await db.collection("users").doc(uid).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        message: "User profile not found in database.",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Profile Loaded",
+      user: {
+        uid,
+        ...userDoc.data()
+      }
+    });
+  } catch (err) {
+    console.error("getProfile error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Error loading profile details.",
+      error: err.message
+    });
+  }
+};
+
+const register = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      errors: errors.array(),
+    });
+  }
+
+  const {
+    name,
+    email,
+    password,
+    regNumber,
+    degreeProgram,
+    batch,
+    contactNumber,
+  } = req.body;
+
+  try {
+    // 1. Create user in Firebase Authentication
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: name,
+    });
+
+    // 2. Save user profile information in Firestore 'users' collection
+    await db.collection("users").doc(userRecord.uid).set({
+      uid: userRecord.uid,
+      name,
+      email,
+      regNumber,
+      degreeProgram,
+      batch,
+      contactNumber,
+      role: "member",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      user: {
+        uid: userRecord.uid,
+        name,
+        email,
+      },
+    });
+  } catch (error) {
+    console.error("Error during user registration:", error);
+
+    // Handle standard Firebase duplicate email error
+    let errorMessage = "Registration failed. Please try again.";
+    let statusCode = 500;
+
+    if (error.code === "auth/email-already-exists") {
+      errorMessage = "The email address is already in use by another account.";
+      statusCode = 400;
+    }
+
+    return res.status(statusCode).json({
+      success: false,
+      message: errorMessage,
+      error: error.message,
+    });
+  }
+};
+
+const login = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      errors: errors.array(),
+    });
+  }
+
+  const apiKey = process.env.FIREBASE_WEB_API_KEY;
+  if (!apiKey) {
+    console.error("FIREBASE_WEB_API_KEY is missing from environment variables.");
+    return res.status(500).json({
+      success: false,
+      message: "Internal server authentication configuration error. Please contact the administrator.",
+    });
+  }
+
+  const { email, password } = req.body;
+
+  try {
+    // 1. Authenticate credentials via Firebase Auth REST API
+    const response = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          returnSecureToken: true,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMsg = data.error?.message || "Authentication failed.";
+      let friendlyMessage = "Invalid credentials. Access denied.";
+
+      if (errorMsg === "EMAIL_NOT_FOUND" || errorMsg === "INVALID_PASSWORD") {
+        friendlyMessage = "Incorrect email or password.";
+      } else if (errorMsg === "USER_DISABLED") {
+        friendlyMessage = "This user account has been disabled.";
+      }
+
       return res.status(401).json({
         success: false,
-        message: 'Authentication failed. Missing authorization token structure.'
+        message: friendlyMessage,
+        error: errorMsg,
       });
     }
 
-    const token = authHeader.split(' ')[1];
-    
-    // Verify using your exact custom export hook
-    const decodedToken = await verifyIdToken(token);
-    const { uid, email, name } = decodedToken;
+    // 2. Check that the user has verified their email address
+    const uid = data.localId;
+    const idToken = data.idToken;
 
-    // Check if the user document already exists inside Firestore collection 'users'
-    const userRef = db.collection('users').doc(uid);
-    const userDoc = await userRef.get();
+    const firebaseUser = await admin.auth().getUser(uid);
+    if (!firebaseUser.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before logging in. Check your inbox for the verification link.",
+        code: "EMAIL_NOT_VERIFIED",
+      });
+    }
 
-    let userData = {};
+    // 3. Fetch user profile and role from Firestore database
+    const userDoc = await db.collection("users").doc(uid).get();
 
     if (!userDoc.exists) {
-      // Create user profile configuration matching SRS data definitions (Section 5)
-      userData = {
-        uid,
-        email,
-        name: name || email.split('@')[0], // Fallback if display name isn't set yet
-        role: email === 'admin@batchfund.com' ? 'admin' : 'member', // Default systemic baseline assignment
-        joinedAt: new Date().toISOString()
-      };
-      await userRef.set(userData);
-      console.log(`New user synchronized into Firestore: ${uid} with role: ${userData.role}`);
-    } else {
-      userData = userDoc.data();
+      return res.status(404).json({
+        success: false,
+        message: "User profile not found in Firestore database.",
+      });
     }
+
+    const userProfile = userDoc.data();
 
     return res.status(200).json({
       success: true,
-      message: 'Token verified and user data retrieved successfully.',
-      user: userData
+      message: "Login successful",
+      token: idToken,
+      user: {
+        uid: userProfile.uid,
+        name: userProfile.name,
+        email: userProfile.email,
+        role: userProfile.role || "member",
+        regNumber: userProfile.regNumber,
+        degreeProgram: userProfile.degreeProgram,
+        batch: userProfile.batch,
+        contactNumber: userProfile.contactNumber,
+      },
     });
-
   } catch (error) {
-    console.error('Error in auth controller verification:', error.message);
-    return res.status(403).json({
+    console.error("Login controller error:", error);
+    return res.status(500).json({
       success: false,
-      message: 'Authentication handshake failed. Invalid token properties.',
-      error: error.message
+      message: "An error occurred during login. Please try again.",
+      error: error.message,
     });
   }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const { name, regNumber, degreeProgram, batch, contactNumber } = req.body;
+
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (regNumber !== undefined) updateData.regNumber = regNumber;
+    if (degreeProgram !== undefined) updateData.degreeProgram = degreeProgram;
+    if (batch !== undefined) updateData.batch = batch;
+    if (contactNumber !== undefined) updateData.contactNumber = contactNumber;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: "No update fields provided." });
+    }
+
+    if (name) {
+      await admin.auth().updateUser(uid, { displayName: name });
+    }
+
+    await db.collection("users").doc(uid).update(updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      user: updateData,
+    });
+  } catch (error) {
+    console.error("updateProfile error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update profile.",
+      error: error.message,
+    });
+  }
+};
+
+export default {
+  getProfile,
+  register,
+  login,
+  updateProfile
 };

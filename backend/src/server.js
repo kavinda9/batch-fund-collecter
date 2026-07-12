@@ -1,63 +1,97 @@
-// backend/src/server.js
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import contributionRoutes from './routes/contributionRoutes.js';
-import authRoutes from './routes/authRoutes.js';
-import campaignRoutes from './routes/campaignRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, resolve, join } from 'path'
+import { tmpdir } from 'os'
 
-// Load environment variables from .env file
-dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+dotenv.config({ path: resolve(__dirname, '../.env') })
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import "./config/firebase.js";
+import authRoutes from "./routes/authRoutes.js";
+import slipRoutes from "./routes/slipRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 
-// Global Middleware
-app.use(cors()); // Enable Cross-Origin Resource Sharing for frontend access
-app.use(express.json()); // Enable JSON body parsing for inbound payloads
+const app = express()
+const PORT = process.env.PORT || 5001
 
-// Application Route Gateways
-app.use('/api/auth', authRoutes);
-app.use('/api/campaigns', campaignRoutes);
-app.use('/api/contributions', contributionRoutes);
-app.use('/api/admin', adminRoutes);
+// CORS configuration — must come BEFORE helmet so preflight OPTIONS
+// responses are handled directly without interference from security headers.
+const allowedOrigins = [
+  process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/+$/, '') : null,
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
 
-// Base System Health-Check Route
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uploader: 'solo-dev'
-  });
-});
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, same-origin server calls)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn(`CORS request blocked for origin: ${origin}. Allowed origins:`, allowedOrigins);
+    callback(null, false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-// Fallback Route for 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
+// Handle ALL OPTIONS preflight requests immediately — before any other middleware
+app.options('*', cors(corsOptions));
 
-// Global Fallback Error Handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled Server Error:', err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'An unexpected internal server error occurred.'
-  });
-});
+// Middleware
+app.use(cors(corsOptions))
+app.use(helmet())
+app.use(morgan('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-// Start the Express Engine
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🚀 API Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  });
+
+// Serve uploaded slip images statically
+if (process.env.VERCEL) {
+  app.use('/uploads/slips', express.static(tmpdir()))
+} else {
+  app.use('/uploads', express.static(join(__dirname, '../uploads')))
 }
 
-export default app;
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/slips", slipRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/user", userRoutes);
+
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// Routes (to be added)
+// app.use('/api/auth',       authRoutes)
+// app.use('/api/users',      userRoutes)
+// app.use('/api/contributions', contributionRoutes)
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' })
+})
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' })
+})
+
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`)
+  })
+}
+
+export default app
+
