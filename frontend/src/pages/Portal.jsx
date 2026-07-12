@@ -17,7 +17,7 @@ const Portal = () => {
       position: 'relative',
       overflow: 'hidden'
     }}>
-      
+
       {/* Decorative Blur Blobs */}
       <div style={{
         position: 'absolute',
@@ -51,7 +51,7 @@ const Portal = () => {
         width: '100%',
         textAlign: 'center'
       }}>
-        
+
         {/* Header */}
         <div style={{ marginBottom: '3.5rem' }}>
           <span style={{
@@ -98,9 +98,9 @@ const Portal = () => {
           margin: '0 auto 3rem auto',
           maxWidth: '720px'
         }}>
-          
+
           {/* Card 1: Admin Portal */}
-          <div 
+          <div
             onClick={() => navigate('/admin')}
             className="glass-card active-border"
             style={{
@@ -132,7 +132,7 @@ const Portal = () => {
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5', flexGrow: 1 }}>
               Access full batch controls. Log payments, approve and record batch expenses, organize upcoming events, and view detailed financial ledger analytics.
             </p>
-            <button 
+            <button
               className="btn btn-primary"
               style={{ marginTop: '1.5rem', width: '100%' }}
             >
@@ -141,7 +141,7 @@ const Portal = () => {
           </div>
 
           {/* Card 2: Student Portal */}
-          <div 
+          <div
             onClick={() => navigate('/member')}
             className="glass-card active-border"
             style={{
@@ -173,11 +173,11 @@ const Portal = () => {
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5', flexGrow: 1 }}>
               Check your personal contribution balance, download official payment receipts, view upcoming events, RSVP, and see general announcements.
             </p>
-            <button 
+            <button
               className="btn btn-primary"
-              style={{ 
-                marginTop: '1.5rem', 
-                width: '100%', 
+              style={{
+                marginTop: '1.5rem',
+                width: '100%',
                 background: 'linear-gradient(135deg, #7c3aed 0%, #c084fc 100%)',
                 boxShadow: '0 4px 14px 0 rgba(124, 58, 237, 0.25)'
               }}

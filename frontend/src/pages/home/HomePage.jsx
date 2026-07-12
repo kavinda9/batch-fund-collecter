@@ -1,14 +1,8 @@
-<<<<<<< HEAD
-import React, { useState } from "react";
-import backgroundSvg from "../../assets/background.svg";
-import image1 from "../../assets/image1.png";
-=======
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import backgroundSvg from "../../assets/background.svg";
 import image1 from "../../assets/image1.png";
 import image2 from "../../assets/image2.png";
->>>>>>> 14cdde4 (updated files)
 import LoginPage from "../auth/LoginPage";
 import RegisterPage from "../auth/RegisterPage";
 import "./HomePage.css";
@@ -16,18 +10,6 @@ import "./HomePage.css";
 const HomePage = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-<<<<<<< HEAD
-
-  return (
-    <div
-      className="home-container"
-      style={{ backgroundImage: `url(${backgroundSvg})` }}
-    >
-      {/* Top Navigation */}
-      <nav className="home-nav">
-        <button className="nav-btn">Home</button>
-        <button className="nav-btn">About</button>
-=======
   const [progress, setProgress] = useState(0); // 0 -> 1 across the first viewport of scroll
   const aboutRef = useRef(null);
   const location = useLocation();
@@ -86,22 +68,11 @@ const HomePage = () => {
       <nav className="home-nav">
         <button className="nav-btn" onClick={scrollToTop}>Home</button>
         <button className="nav-btn" onClick={scrollToAbout}>About</button>
->>>>>>> 14cdde4 (updated files)
         <button className="nav-btn" onClick={() => setShowLogin(true)}>
           Login
         </button>
       </nav>
 
-<<<<<<< HEAD
-      {/* Headings */}
-      <div className="heading-batch-fund">Batch Fund</div>
-      <div className="heading-collector">Collector</div>
-
-      {/* Bottom Left Image */}
-      <div className="home-image-wrapper">
-        <img src={image1} alt="illustration" className="home-image" />
-      </div>
-=======
       {/* Scroll spacer - gives the pinned hero animation room to play out */}
       <div className="hero-spacer" />
 
@@ -173,7 +144,6 @@ const HomePage = () => {
         </div>
       </section>
 
->>>>>>> 14cdde4 (updated files)
 
       {/* Login Modal */}
       {showLogin && (
@@ -194,8 +164,4 @@ const HomePage = () => {
   );
 };
 
-<<<<<<< HEAD
 export default HomePage;
-=======
-export default HomePage;
->>>>>>> 14cdde4 (updated files)

@@ -1,17 +1,10 @@
-<<<<<<< HEAD
-import React, { useState, useRef } from "react";
-=======
 import React, { useState, useRef, useEffect } from "react";
->>>>>>> 14cdde4 (updated files)
 import { useNavigate } from "react-router-dom";
 import "./PayFund.css";
 import bankLogo from "../../assets/bank.png";
 
-<<<<<<< HEAD
-=======
 const API_BASE = "http://localhost:5001";
 
->>>>>>> 14cdde4 (updated files)
 /* ============================================================
    PayFund.jsx
    Standalone "batch fund slip upload" page — pulled out of the old
@@ -25,42 +18,18 @@ const API_BASE = "http://localhost:5001";
    ============================================================ */
 
 const MONTHLY_FUND_AMOUNT = 250; // Rs. per month — keep in sync with dashboard
-<<<<<<< HEAD
-const TOTAL_OUTSTANDING = 3000; // Rs. — replace with real value from backend/context
-
-=======
->>>>>>> 14cdde4 (updated files)
 const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
 ];
 const monthLabel = (y, m) => `${MONTH_NAMES[m - 1]} ${y}`;
 
-<<<<<<< HEAD
-// TODO: replace this mock queue with the real list of unpaid months
-// (e.g. passed in as a prop, or fetched from your backend/context).
-const MOCK_PAYABLE_QUEUE = [
-    { year: 2026, month: 7 },
-    { year: 2026, month: 8 },
-    { year: 2026, month: 9 },
-    { year: 2026, month: 10 },
-    { year: 2026, month: 11 },
-    { year: 2026, month: 12 },
-];
-
-=======
->>>>>>> 14cdde4 (updated files)
 const PayFund = ({ onBack }) => {
     const navigate = useNavigate();
     const [uploadedFile, setUploadedFile] = useState(null);
     const [amount, setAmount] = useState("");
     const [confirmed, setConfirmed] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-<<<<<<< HEAD
-    const [copyText, setCopyText] = useState("Copy account number");
-    const fileInputRef = useRef(null);
-
-=======
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState("");
     const [copyText, setCopyText] = useState("Copy account number");
@@ -123,23 +92,16 @@ const PayFund = ({ onBack }) => {
         loadPaymentInfo();
     }, []);
 
->>>>>>> 14cdde4 (updated files)
     const amountNum = Number(amount) || 0;
     const monthsToPay = Math.floor(amountNum / MONTHLY_FUND_AMOUNT);
     const remainder = amountNum % MONTHLY_FUND_AMOUNT;
     const isValidAmount = amountNum > 0 && remainder === 0 && monthsToPay >= 1;
     const monthsCovered = isValidAmount
-<<<<<<< HEAD
-        ? MOCK_PAYABLE_QUEUE.slice(0, monthsToPay)
-        : [];
-    const canSubmit = uploadedFile && isValidAmount && confirmed;
-=======
         ? payableQueue.slice(0, monthsToPay)
         : [];
     // Block submission if monthsCovered is empty AND the queue has fully loaded
     // (if not loaded yet, monthsCovered being empty is normal — don't block yet)
     const canSubmit = uploadedFile && isValidAmount && confirmed && !uploading && (!queueLoaded || monthsCovered.length > 0);
->>>>>>> 14cdde4 (updated files)
 
     const copyAccount = () => {
         navigator.clipboard?.writeText("097200140070892").catch(() => { });
@@ -163,12 +125,6 @@ const PayFund = ({ onBack }) => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-<<<<<<< HEAD
-    const submitPayment = () => {
-        if (!canSubmit) return;
-        // TODO: send { uploadedFile, amount, monthsCovered } to your backend here.
-        setSubmitted(true);
-=======
     const submitPayment = async () => {
         if (!canSubmit || uploading) return;
         setUploadError("");
@@ -211,7 +167,6 @@ const PayFund = ({ onBack }) => {
         } finally {
             setUploading(false);
         }
->>>>>>> 14cdde4 (updated files)
     };
 
     const handleBack = () => {
@@ -299,19 +254,11 @@ const PayFund = ({ onBack }) => {
                                 </div>
                                 <div className="bank-row">
                                     <span className="br-lbl">
-<<<<<<< HEAD
-                                        {TOTAL_OUTSTANDING > 0 ? "Total outstanding" : "Status"}
-                                    </span>
-                                    <span className="br-val primary-val">
-                                        {TOTAL_OUTSTANDING > 0
-                                            ? `Rs. ${TOTAL_OUTSTANDING.toLocaleString()}`
-=======
                                         {remainingDues > 0 ? "Total outstanding" : "Status"}
                                     </span>
                                     <span className="br-val primary-val">
                                         {remainingDues > 0
                                             ? `Rs. ${remainingDues.toLocaleString()}`
->>>>>>> 14cdde4 (updated files)
                                             : "Up to date"}
                                     </span>
                                 </div>
@@ -397,13 +344,10 @@ const PayFund = ({ onBack }) => {
                                             Amount must be a multiple of Rs. {MONTHLY_FUND_AMOUNT}{" "}
                                             (1 month = Rs. {MONTHLY_FUND_AMOUNT}).
                                         </div>
-<<<<<<< HEAD
-=======
                                     ) : isValidAmount && queueLoaded && monthsCovered.length === 0 ? (
                                         <div className="hint hint-error">
                                             All months for this year are already covered by existing payments. No remaining months to pay.
                                         </div>
->>>>>>> 14cdde4 (updated files)
                                     ) : isValidAmount ? (
                                         <div className="hint">
                                             This covers {monthsToPay} month
@@ -455,10 +399,6 @@ const PayFund = ({ onBack }) => {
                                     disabled={!canSubmit}
                                     onClick={submitPayment}
                                 >
-<<<<<<< HEAD
-                                    Submit payment
-                                </button>
-=======
                                     {uploading ? "Uploading…" : "Submit payment"}
                                 </button>
 
@@ -475,7 +415,6 @@ const PayFund = ({ onBack }) => {
                                         {uploadError}
                                     </div>
                                 )}
->>>>>>> 14cdde4 (updated files)
                             </div>
                         </div>
                     ) : (

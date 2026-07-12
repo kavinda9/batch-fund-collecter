@@ -4,14 +4,11 @@
    language already used on the User Dashboard, so the two pages feel
    like one product rather than two separate builds. */
 
-<<<<<<< HEAD
-=======
 @font-face {
     font-family: "FrontFont";
     src: url("../../assets/front1.ttf") format("truetype");
 }
 
->>>>>>> 14cdde4 (updated files)
 :root {
     --landing-bg: #f6faf8;
     --landing-surface: #ffffff;
@@ -31,60 +28,17 @@
 
 .landing-page {
     min-height: 100vh;
-<<<<<<< HEAD
-    background: var(--landing-bg);
-=======
     background-image: url("../../assets/background2.svg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
->>>>>>> 14cdde4 (updated files)
     font-family: "Inter", "Segoe UI", system-ui, sans-serif;
     color: var(--landing-text);
     display: flex;
     flex-direction: column;
 }
 
-<<<<<<< HEAD
-/* ---------- Header ---------- */
-
-.landing-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 32px;
-}
-
-.landing-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: "Space Grotesk", "Inter", sans-serif;
-    font-weight: 600;
-    font-size: 18px;
-}
-
-.landing-brand-mark {
-    color: var(--landing-green-500);
-    font-size: 12px;
-}
-
-.landing-logout {
-    background: transparent;
-    border: 1px solid var(--landing-border);
-    color: var(--landing-text-muted);
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.landing-logout:hover {
-    border-color: var(--landing-green-500);
-    color: var(--landing-green-700);
-=======
 /* ---------- Header Navigation ---------- */
 
 .home-nav {
@@ -109,7 +63,6 @@
 
 .nav-btn:hover {
     opacity: 0.7;
->>>>>>> 14cdde4 (updated files)
 }
 
 .landing-logout:focus-visible,
@@ -122,24 +75,15 @@
 
 .landing-main {
     flex: 1;
-<<<<<<< HEAD
-    max-width: 720px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 24px 24px 64px;
-=======
     max-width: 1200px;
     width: 100%;
     margin: 100px auto 0;
     padding: 24px 40px 64px;
->>>>>>> 14cdde4 (updated files)
     display: flex;
     flex-direction: column;
     gap: 28px;
 }
 
-<<<<<<< HEAD
-=======
 /* Two-column grid layout */
 .landing-two-col {
     display: grid;
@@ -148,7 +92,6 @@
     align-items: start;
 }
 
->>>>>>> 14cdde4 (updated files)
 /* ---------- Hero ---------- */
 
 .landing-hero {
@@ -197,15 +140,9 @@
 
 .landing-title {
     position: relative;
-<<<<<<< HEAD
-    font-family: "Space Grotesk", "Inter", sans-serif;
-    font-size: clamp(28px, 4vw, 36px);
-    font-weight: 600;
-=======
     font-family: "FrontFont", sans-serif;
     font-size: clamp(32px, 5vw, 42px);
     font-weight: bold;
->>>>>>> 14cdde4 (updated files)
     margin: 0 0 12px;
 }
 
@@ -260,47 +197,6 @@
 
 /* ---------- Quick glance chips ---------- */
 
-<<<<<<< HEAD
-.landing-glance {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-}
-
-.landing-chip {
-    background: var(--landing-surface);
-    border: 1px solid var(--landing-border);
-    border-radius: var(--landing-radius-md);
-    padding: 16px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.landing-chip:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(18, 128, 92, 0.1);
-}
-
-.landing-chip-label {
-    font-size: 12.5px;
-    color: var(--landing-text-muted);
-}
-
-.landing-chip-value {
-    font-family: "Space Grotesk", "Inter", sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--landing-text);
-}
-
-.landing-footnote {
-    font-size: 13px;
-    color: var(--landing-text-muted);
-    text-align: center;
-    margin: 0;
-=======
 /* ---------- Logo stack (right column) ---------- */
 
 .landing-logo-stack {
@@ -395,12 +291,13 @@
 
 .status-value.zero,
 .status-value.advance {
-    color: #4caf50; /* Green */
+    color: #4caf50;
+    /* Green */
 }
 
 .status-value.arrears {
-    color: #f44336; /* Red */
->>>>>>> 14cdde4 (updated files)
+    color: #f44336;
+    /* Red */
 }
 
 /* ---------- Motion & responsiveness ---------- */
@@ -423,24 +320,11 @@
     }
 
     .landing-cta,
-<<<<<<< HEAD
-    .landing-chip {
-=======
     .landing-logo-card {
->>>>>>> 14cdde4 (updated files)
         transition: none;
     }
 }
 
-<<<<<<< HEAD
-@media (max-width: 640px) {
-    .landing-header {
-        padding: 16px 20px;
-    }
-
-    .landing-main {
-        padding: 16px 16px 48px;
-=======
 @media (max-width: 900px) {
     .landing-two-col {
         grid-template-columns: 1fr;
@@ -448,17 +332,9 @@
 
     .landing-main {
         padding: 16px 20px 48px;
->>>>>>> 14cdde4 (updated files)
     }
 
     .landing-hero {
         padding: 32px 24px;
     }
-<<<<<<< HEAD
-
-    .landing-glance {
-        grid-template-columns: 1fr;
-    }
-=======
->>>>>>> 14cdde4 (updated files)
 }

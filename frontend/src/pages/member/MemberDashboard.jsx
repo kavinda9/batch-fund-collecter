@@ -1,57 +1,25 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-=======
 import React, { useState, useEffect } from 'react';
->>>>>>> 14cdde4 (updated files)
 import { useNavigate } from 'react-router-dom';
-import { 
-  HomeIcon, DashboardIcon, FundIcon, IncomeIcon, EventIcon, 
+import {
+  HomeIcon, DashboardIcon, FundIcon, IncomeIcon, EventIcon,
   SettingsIcon, LogoutIcon, DownloadIcon, BellIcon,
   InfoIcon, CheckIcon, SpeakerIcon, CalendarIcon, UsersIcon
 } from '../../components/Icons';
 import { Navbar } from '../../components/Navbar';
 import { QuickActionModal } from '../../components/QuickActionModal';
 
-<<<<<<< HEAD
-=======
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
->>>>>>> 14cdde4 (updated files)
 const MemberDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Modals state
   const [modalType, setModalType] = useState(null); // 'receipt'
   const [selectedReceiptData, setSelectedReceiptData] = useState(null);
 
-<<<<<<< HEAD
-  // Mock student stats
-  const memberName = "Rahul Verma";
-  const memberRoll = "22BCS108";
-  
-  const [personalPayments, setPersonalPayments] = useState([
-    { id: 1, txId: 'TXN8274920491', amount: 500, date: '2026-06-15', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (June)', status: 'Verified' },
-    { id: 2, txId: 'TXN1938492048', amount: 500, date: '2026-05-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (May)', status: 'Verified' },
-    { id: 3, txId: 'TXN8492019385', amount: 500, date: '2026-04-08', mode: 'UPI / Paytm', purpose: 'Monthly Contribution (April)', status: 'Verified' },
-    { id: 4, txId: 'TXN0293847291', amount: 500, date: '2026-03-12', mode: 'Cash', purpose: 'Monthly Contribution (March)', status: 'Verified' },
-    { id: 5, txId: 'TXN7392840193', amount: 500, date: '2026-02-05', mode: 'UPI / PhonePe', purpose: 'Monthly Contribution (February)', status: 'Verified' },
-    { id: 6, txId: 'TXN1039482710', amount: 500, date: '2026-01-10', mode: 'UPI / GPay', purpose: 'Monthly Contribution (January)', status: 'Verified' }
-  ]);
-
-  const [announcements, setAnnouncements] = useState([
-    { id: 1, title: 'Farewell Venue Finalised!', date: '2026-06-26', content: 'The Farewell Committee has booked the Main Auditorium for July 15. The event starts at 5:00 PM. Dress code: Formal/Ethnic.', priority: 'High' },
-    { id: 2, title: 'Dues collection deadline extended', date: '2026-06-10', content: 'Due to semester exams, the deadline for June contributions has been extended to July 5. Please complete UPI transfers.', priority: 'Normal' },
-    { id: 3, title: 'Charity Drive Donation Report', date: '2026-06-07', content: 'We successfully distributed food packages to 45 children at the shelter. Total expenses incurred: Rs. 8,000. Invoice copies are in the drive.', priority: 'Low' }
-  ]);
-
-  const [memberEvents, setMemberEvents] = useState([
-    { id: 1, title: 'Farewell Gala 2026', date: '2026-07-15', fee: 500, venue: 'Main Auditorium', rsvp: 'Attending', desc: 'Farewell celebration for the graduating batch of 2026.' },
-    { id: 2, title: 'Batch Project Exhibition', date: '2026-07-28', fee: 0, venue: 'CSE Lab 2 & 3', rsvp: 'Unconfirmed', desc: 'Mini project exhibition and external jury evaluation.' }
-  ]);
-=======
   // Student stats/profile info
   const [profile, setProfile] = useState({
     name: "Loading...",
@@ -66,7 +34,7 @@ const MemberDashboard = () => {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
-  
+
   const [personalPayments, setPersonalPayments] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [memberEvents, setMemberEvents] = useState([]);
@@ -109,7 +77,7 @@ const MemberDashboard = () => {
       if (slipsRes.ok) {
         const slipsData = await slipsRes.json();
         const paymentsList = slipsData.payments || [];
-        
+
         // Calculate monthly paid amount for 12 months of 2026
         const monthsData = Array(12).fill(0);
         paymentsList.forEach(p => {
@@ -130,7 +98,7 @@ const MemberDashboard = () => {
           if (Array.isArray(p.monthsCovered)) {
             monthsStr = p.monthsCovered.map(m => m ? `${m.month}/${m.year}` : "").filter(Boolean).join(', ');
           }
-          
+
           let dateStr = "-";
           if (p.createdAt) {
             try {
@@ -190,22 +158,11 @@ const MemberDashboard = () => {
   useEffect(() => {
     loadAllData();
   }, []);
->>>>>>> 14cdde4 (updated files)
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
   };
 
-<<<<<<< HEAD
-  const toggleRSVP = (eventId) => {
-    setMemberEvents(memberEvents.map(ev => {
-      if (ev.id === eventId) {
-        const nextRSVP = ev.rsvp === 'Attending' ? 'Declined' : 'Attending';
-        return { ...ev, rsvp: nextRSVP };
-      }
-      return ev;
-    }));
-=======
   const toggleRSVP = async (eventId, currentStatus) => {
     try {
       const nextStatus = currentStatus === 'Attending' ? 'Declined' : 'Attending';
@@ -223,18 +180,12 @@ const MemberDashboard = () => {
     } catch (error) {
       console.error("RSVP error:", error);
     }
->>>>>>> 14cdde4 (updated files)
   };
 
   const openReceiptModal = (pay) => {
     setSelectedReceiptData({
-<<<<<<< HEAD
-      student: memberName,
-      rollNo: memberRoll,
-=======
       student: profile.name,
       rollNo: profile.regNumber,
->>>>>>> 14cdde4 (updated files)
       amount: pay.amount,
       date: pay.date,
       purpose: pay.purpose,
@@ -244,8 +195,6 @@ const MemberDashboard = () => {
     setModalType('receipt');
   };
 
-<<<<<<< HEAD
-=======
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setSavingProfile(true);
@@ -272,17 +221,10 @@ const MemberDashboard = () => {
     }
   };
 
->>>>>>> 14cdde4 (updated files)
   const triggerMobileToggle = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
-<<<<<<< HEAD
-  // Calculations
-  const amountContributed = personalPayments.reduce((sum, p) => sum + p.amount, 0);
-  const remainingDues = 0; // Fully paid up to June
-  const batchFundTotal = 154000;
-=======
   // Calculations — driven by backend stats so they update in real time
   const amountContributed = generalStats.totalPaid;   // only approved payments
   const pendingAmount = generalStats.totalPending;     // submitted but not yet reviewed
@@ -290,7 +232,6 @@ const MemberDashboard = () => {
   const TARGET_DUES = 3000;
   const remainingDues = Math.max(0, TARGET_DUES - amountContributed);
   const batchFundTotal = generalStats.totalCollected;
->>>>>>> 14cdde4 (updated files)
   const upcomingEventCount = memberEvents.length;
 
   const sidebarItems = [
@@ -300,13 +241,10 @@ const MemberDashboard = () => {
     { name: 'Payment History', icon: <FundIcon /> },
     { name: 'Events', icon: <EventIcon /> },
     { name: 'Announcements', icon: <SpeakerIcon /> },
-<<<<<<< HEAD
-=======
     { name: 'Settings', icon: <SettingsIcon /> },
->>>>>>> 14cdde4 (updated files)
   ];
 
-  const filteredHistory = personalPayments.filter(p => 
+  const filteredHistory = personalPayments.filter(p =>
     p.purpose.toLowerCase().includes(searchQuery) ||
     p.txId.toLowerCase().includes(searchQuery) ||
     p.mode.toLowerCase().includes(searchQuery)
@@ -314,7 +252,7 @@ const MemberDashboard = () => {
 
   return (
     <div className="app-container">
-      
+
       {/* Sidebar Navigation */}
       <aside style={{
         position: 'fixed',
@@ -331,7 +269,7 @@ const MemberDashboard = () => {
         transform: mobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.3s ease',
       }} className="sidebar-aside">
-        
+
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem', paddingLeft: '0.5rem' }}>
           <div style={{
@@ -350,11 +288,7 @@ const MemberDashboard = () => {
           </div>
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: '700', lineHeight: 1.2 }}>StudentPortal</h3>
-<<<<<<< HEAD
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Roll No: 22BCS108</span>
-=======
             <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Roll No: {profile.regNumber}</span>
->>>>>>> 14cdde4 (updated files)
           </div>
         </div>
 
@@ -426,32 +360,24 @@ const MemberDashboard = () => {
 
       {/* Main Panel Content */}
       <main className="main-content">
-        
+
         {/* Top Navbar */}
-        <Navbar 
-          title={`Student / ${activeTab}`} 
-          userRole="Member" 
+        <Navbar
+          title={`Student / ${activeTab}`}
+          userRole="Member"
           onSearch={handleSearch}
           toggleMobileSidebar={triggerMobileToggle}
-<<<<<<< HEAD
-=======
           onSettings={() => setActiveTab('Settings')}
->>>>>>> 14cdde4 (updated files)
         />
 
         {/* TAB 1: DASHBOARD VIEW */}
         {activeTab === 'Dashboard' && (
           <div className="animate-fade">
-            
+
             {/* Header greeting */}
             <div style={{ marginBottom: '1.5rem' }}>
-<<<<<<< HEAD
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Hello, {memberName}!</h2>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>You have no pending dues for the month of June. Keep it up!</span>
-=======
               <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Hello, {profile.name}!</h2>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>You have no pending dues. Keep it up!</span>
->>>>>>> 14cdde4 (updated files)
             </div>
 
             {/* Widget Cards Grid */}
@@ -461,7 +387,7 @@ const MemberDashboard = () => {
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
-              
+
               {/* Amount Contributed */}
               <div className="glass-card active-border">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
@@ -470,11 +396,7 @@ const MemberDashboard = () => {
                 </div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>Rs. {amountContributed.toLocaleString()}</h2>
                 <div style={{ fontSize: '0.75rem', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-<<<<<<< HEAD
-                  <span>✓ 6 Payments Complete</span>
-=======
                   <span>✓ {personalPayments.filter(p => p.status === 'Verified').length} Payments Verified {pendingAmount > 0 && `(+ Rs. ${pendingAmount} Pending)`}</span>
->>>>>>> 14cdde4 (updated files)
                 </div>
               </div>
 
@@ -487,20 +409,16 @@ const MemberDashboard = () => {
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem', color: remainingDues > 0 ? 'var(--danger)' : 'var(--success)' }}>
                   Rs. {remainingDues.toLocaleString()}
                 </h2>
-<<<<<<< HEAD
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No outstanding payments</div>
-=======
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   {remainingDues > 0 ? "Outstanding payments due" : "No outstanding payments"}
                 </div>
->>>>>>> 14cdde4 (updated files)
               </div>
 
               {/* Total Batch Fund Balance */}
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL BATCH FUND</span>
-                  <span style={{ color: 'var(--primary-blue)' }}><FundIcon size={16}/></span>
+                  <span style={{ color: 'var(--primary-blue)' }}><FundIcon size={16} /></span>
                 </div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '0.5rem' }}>Rs. {batchFundTotal.toLocaleString()}</h2>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Shared batch transparent ledger</div>
@@ -513,11 +431,6 @@ const MemberDashboard = () => {
                   <span>🛡️</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.4rem 0' }}>
-<<<<<<< HEAD
-                  <span className="badge badge-success" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem' }}>Verified Member</span>
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>All payment checks approved</div>
-=======
                   {remainingDues > 0 ? (
                     <span className="badge badge-warning" style={{ fontSize: '0.85rem', padding: '0.4rem 0.8rem', backgroundColor: '#f59e0b', color: '#fff' }}>Pending Dues</span>
                   ) : (
@@ -527,7 +440,6 @@ const MemberDashboard = () => {
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   {remainingDues > 0 ? "Please complete remaining payments" : "All payment checks approved"}
                 </div>
->>>>>>> 14cdde4 (updated files)
               </div>
 
             </div>
@@ -539,7 +451,7 @@ const MemberDashboard = () => {
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
-              
+
               {/* Chart 1: Personal Contribution History Chart */}
               <div className="glass-card">
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>My Contribution History</h3>
@@ -553,7 +465,7 @@ const MemberDashboard = () => {
                   <svg viewBox="0 0 360 150" width="100%" height="150" style={{ overflow: 'visible' }}>
                     {/* Y scale grid lines */}
                     {[0, 250, 500].map((val, idx) => {
-                      const y = 10 + 100 * (1 - val/500);
+                      const y = 10 + 100 * (1 - val / 500);
                       return (
                         <g key={idx}>
                           <line x1="30" y1={y} x2="350" y2={y} stroke="var(--border-color)" strokeWidth="1" strokeDasharray="3 3" />
@@ -562,15 +474,6 @@ const MemberDashboard = () => {
                       );
                     })}
 
-<<<<<<< HEAD
-                    {/* Bars for Jan-Jun */}
-                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, idx) => {
-                      const x = 50 + idx * 50;
-                      const h = 100; // Fixed Rs. 500 paid monthly
-                      const y = 10;
-                      return (
-                        <g key={idx} style={{ cursor: 'pointer' }}>
-=======
                     {/* Bars for Jan-Jun based on real monthly data */}
                     {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, idx) => {
                       const x = 50 + idx * 50;
@@ -581,7 +484,6 @@ const MemberDashboard = () => {
                       return (
                         <g key={idx} style={{ cursor: 'pointer' }}>
                           <title>{`${m}: Rs. ${val}`}</title>
->>>>>>> 14cdde4 (updated files)
                           <rect x={x} y={y} width="18" height={h} fill="url(#purple-grad)" rx="4" />
                           <text x={x + 9} y="128" fill="var(--text-muted)" fontSize="9" textAnchor="middle" fontWeight="600">{m}</text>
                         </g>
@@ -600,28 +502,7 @@ const MemberDashboard = () => {
               {/* Chart 2: Batch Fund overall progress Dial */}
               <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>Batch Fund Collection Dial</h3>
-                
-<<<<<<< HEAD
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexGrow: 1, flexWrap: 'wrap' }}>
-                  <div style={{ position: 'relative', width: '120px', height: '120px' }}>
-                    {/* Circle dial */}
-                    <svg width="120" height="120" viewBox="0 0 120 120">
-                      <circle cx="60" cy="60" r="48" fill="transparent" stroke="var(--border-color)" strokeWidth="10" />
-                      <circle cx="60" cy="60" r="48" fill="transparent" stroke="#2563eb" strokeWidth="10" strokeDasharray="301.6" strokeDashoffset="36.2" transform="rotate(-90 60 60)" style={{ strokeLinecap: 'round' }} />
-                    </svg>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                      <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-main)' }}>88%</span>
-                    </div>
-                  </div>
 
-                  <div>
-                    <h4 style={{ fontSize: '0.9rem', marginBottom: '0.25rem' }}>Collection Rate</h4>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4', maxWidth: '160px' }}>
-                      Rs. 2,12,000 has been collected out of target Rs. 2,40,000 for the semester.
-                    </p>
-                  </div>
-                </div>
-=======
                 {(() => {
                   const percent = Math.min(100, Math.round((generalStats.totalCollected / (generalStats.targetSemester || 240000)) * 100)) || 0;
                   const circ = 301.6;
@@ -648,7 +529,6 @@ const MemberDashboard = () => {
                     </div>
                   );
                 })()}
->>>>>>> 14cdde4 (updated files)
               </div>
 
             </div>
@@ -659,14 +539,14 @@ const MemberDashboard = () => {
               gridTemplateColumns: '1.2fr 1fr',
               gap: '1.5rem'
             }} className="dashboard-grid-bottom">
-              
+
               {/* Latest Announcements */}
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Batch Announcements</h3>
                   <button onClick={() => setActiveTab('Announcements')} style={{ background: 'transparent', border: 'none', color: 'var(--primary-purple)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}>View All</button>
                 </div>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {announcements.slice(0, 2).map((ann) => (
                     <div key={ann.id} style={{
@@ -708,12 +588,8 @@ const MemberDashboard = () => {
                         <h4 style={{ fontSize: '0.85rem', fontWeight: '600', margin: 0 }}>{ev.title}</h4>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Date: {ev.date}</span>
                       </div>
-                      <button 
-<<<<<<< HEAD
-                        onClick={() => toggleRSVP(ev.id)}
-=======
+                      <button
                         onClick={() => toggleRSVP(ev.id, ev.rsvp)}
->>>>>>> 14cdde4 (updated files)
                         className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
                         style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
                       >
@@ -792,12 +668,12 @@ const MemberDashboard = () => {
                         <span className="badge badge-success">{p.status}</span>
                       </td>
                       <td>
-                        <button 
+                        <button
                           onClick={() => openReceiptModal(p)}
-                          className="btn btn-secondary" 
+                          className="btn btn-secondary"
                           style={{ padding: '0.4rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                         >
-                          <DownloadIcon size={12}/> Receipt
+                          <DownloadIcon size={12} /> Receipt
                         </button>
                       </td>
                     </tr>
@@ -834,24 +710,20 @@ const MemberDashboard = () => {
                       {ev.fee > 0 ? `Entry Cost: Rs. ${ev.fee}` : 'Free Entry'}
                     </span>
                   </div>
-                  
+
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{ev.title}</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem', height: '40px', overflow: 'hidden' }}>{ev.desc}</p>
-                  
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                     <div style={{ fontSize: '0.8rem' }}>
                       <span style={{ color: 'var(--text-muted)' }}>Venue:</span> <strong style={{ color: 'var(--text-main)' }}>{ev.venue}</strong>
                     </div>
-                    
-                    <button 
-<<<<<<< HEAD
-                      onClick={() => toggleRSVP(ev.id)}
-=======
+
+                    <button
                       onClick={() => toggleRSVP(ev.id, ev.rsvp)}
->>>>>>> 14cdde4 (updated files)
                       className={`btn ${ev.rsvp === 'Attending' ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ 
-                        padding: '0.45rem 1rem', 
+                      style={{
+                        padding: '0.45rem 1rem',
                         fontSize: '0.8rem',
                         background: ev.rsvp === 'Attending' ? 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)' : 'var(--border-color)',
                         boxShadow: ev.rsvp === 'Attending' ? '0 4px 10px rgba(124,58,237,0.2)' : 'none'
@@ -874,8 +746,8 @@ const MemberDashboard = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.75rem' }}>
               {announcements.map((ann) => (
-                <div 
-                  key={ann.id} 
+                <div
+                  key={ann.id}
                   style={{
                     padding: '1.5rem',
                     borderRadius: '16px',
@@ -887,9 +759,8 @@ const MemberDashboard = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <h3 style={{ fontSize: '1.05rem', fontWeight: '600' }}>{ann.title}</h3>
-                      <span className={`badge ${
-                        ann.priority === 'High' ? 'badge-danger' : ann.priority === 'Normal' ? 'badge-info' : 'badge-success'
-                      }`} style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem' }}>
+                      <span className={`badge ${ann.priority === 'High' ? 'badge-danger' : ann.priority === 'Normal' ? 'badge-info' : 'badge-success'
+                        }`} style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem' }}>
                         {ann.priority} Priority
                       </span>
                     </div>
@@ -902,31 +773,29 @@ const MemberDashboard = () => {
           </div>
         )}
 
-<<<<<<< HEAD
-=======
         {/* TAB 6: SETTINGS */}
         {activeTab === 'Settings' && (
           <div className="glass-card animate-fade" style={{ maxWidth: '640px' }}>
             <h2 style={{ fontSize: '1.35rem', marginBottom: '1.5rem', fontWeight: '700' }}>Account Settings</h2>
-            
+
             <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Full Name</label>
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    value={profileForm.name} 
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={profileForm.name}
                     onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
                     required
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Registration Number</label>
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    value={profileForm.regNumber} 
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={profileForm.regNumber}
                     onChange={e => setProfileForm({ ...profileForm, regNumber: e.target.value })}
                     required
                   />
@@ -936,20 +805,20 @@ const MemberDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
                   <label className="form-label">Degree Program</label>
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    value={profileForm.degreeProgram} 
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={profileForm.degreeProgram}
                     onChange={e => setProfileForm({ ...profileForm, degreeProgram: e.target.value })}
                     required
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Batch</label>
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    value={profileForm.batch} 
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={profileForm.batch}
                     onChange={e => setProfileForm({ ...profileForm, batch: e.target.value })}
                     required
                   />
@@ -958,18 +827,18 @@ const MemberDashboard = () => {
 
               <div className="form-group">
                 <label className="form-label">Contact Number</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  value={profileForm.contactNumber} 
+                <input
+                  type="text"
+                  className="form-input"
+                  value={profileForm.contactNumber}
                   onChange={e => setProfileForm({ ...profileForm, contactNumber: e.target.value })}
                   required
                 />
               </div>
 
               {saveMessage && (
-                <div style={{ 
-                  color: saveMessage.type === 'success' ? '#4caf50' : '#f44336', 
+                <div style={{
+                  color: saveMessage.type === 'success' ? '#4caf50' : '#f44336',
                   fontSize: '0.85rem',
                   padding: '0.5rem',
                   background: saveMessage.type === 'success' ? 'rgba(76,175,80,0.08)' : 'rgba(244,67,54,0.08)',
@@ -988,14 +857,13 @@ const MemberDashboard = () => {
           </div>
         )}
 
->>>>>>> 14cdde4 (updated files)
       </main>
 
       {/* Digital Receipt Modal */}
       {modalType === 'receipt' && (
-        <QuickActionModal 
-          type="receipt" 
-          onClose={() => setModalType(null)} 
+        <QuickActionModal
+          type="receipt"
+          onClose={() => setModalType(null)}
           data={selectedReceiptData}
         />
       )}

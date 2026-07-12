@@ -5,14 +5,11 @@
    page feels native when linked from "Pay Fund" on the dashboard.
    ============================================================ */
 
-<<<<<<< HEAD
-=======
 @font-face {
-  font-family: "FrontFont";
-  src: url("../../assets/front1.ttf") format("truetype");
+    font-family: "FrontFont";
+    src: url("../../assets/front1.ttf") format("truetype");
 }
 
->>>>>>> 14cdde4 (updated files)
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
@@ -52,15 +49,11 @@
 
 .payfund-page {
     min-height: 100vh;
-<<<<<<< HEAD
-    background: var(--bg);
-=======
     background-image: url("../../assets/background2.svg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
->>>>>>> 14cdde4 (updated files)
     font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
     color: var(--text);
     padding: 28px 24px 64px;
@@ -101,28 +94,17 @@
 
 /* Title */
 .payment-title {
-<<<<<<< HEAD
-    font-size: 21px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.4px;
-=======
     font-family: "FrontFont", sans-serif;
     font-size: 2.8rem;
     font-weight: bold;
     color: #ffffff;
     letter-spacing: 0.03em;
->>>>>>> 14cdde4 (updated files)
     margin-bottom: 4px;
 }
 
 .payment-sub {
     font-size: 13px;
-<<<<<<< HEAD
-    color: var(--text-dim);
-=======
     color: rgba(255, 255, 255, 0.85);
->>>>>>> 14cdde4 (updated files)
     margin-bottom: 28px;
 }
 
@@ -143,79 +125,47 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-<<<<<<< HEAD
-    background: var(--card-soft);
-    border: 1.5px solid var(--border);
-=======
     background: #ffffff;
     border: 1.5px solid #ffffff;
->>>>>>> 14cdde4 (updated files)
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 11.5px;
     font-weight: 700;
-<<<<<<< HEAD
-    color: var(--text-dim);
-=======
     color: #111827;
->>>>>>> 14cdde4 (updated files)
     transition: all 0.2s;
     flex-shrink: 0;
 }
 
 .step-num.active {
-<<<<<<< HEAD
-    background: #28345e;
-    color: #fff;
-    border-color: #28345e;
-    box-shadow: 0 2px 8px rgba(40, 52, 94, 0.25);
-=======
     background: #ffffff;
     color: #111827;
     border-color: #ffffff;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
->>>>>>> 14cdde4 (updated files)
 }
 
 .step-num.done {
     background: #00b4d8;
-<<<<<<< HEAD
-    color: #fff;
-=======
     color: #ffffff;
->>>>>>> 14cdde4 (updated files)
     border-color: #00b4d8;
 }
 
 .step-lbl {
     font-size: 12.5px;
-<<<<<<< HEAD
-    color: var(--text-dim);
-=======
     color: #ffffff;
->>>>>>> 14cdde4 (updated files)
     font-weight: 500;
     white-space: nowrap;
 }
 
 .step-lbl.active {
-<<<<<<< HEAD
-    color: var(--text);
-=======
     color: #ffffff;
->>>>>>> 14cdde4 (updated files)
     font-weight: 700;
 }
 
 .step-divider {
     flex: 1;
     height: 1.5px;
-<<<<<<< HEAD
-    background: var(--border-soft);
-=======
     background: rgba(255, 255, 255, 0.2);
->>>>>>> 14cdde4 (updated files)
     margin: 0 14px;
 }
 
@@ -605,8 +555,6 @@
     .payfund-page {
         padding: 24px 24px 48px;
     }
-<<<<<<< HEAD
-=======
 }
 
 /* ── Success state ───────────────────────────────────────── */
@@ -646,5 +594,4 @@
     color: rgba(255, 255, 255, 0.88);
     max-width: 480px;
     line-height: 1.7;
->>>>>>> 14cdde4 (updated files)
 }

@@ -1,33 +1,20 @@
 import React, { useState } from "react";
-<<<<<<< HEAD
-=======
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig";
->>>>>>> 14cdde4 (updated files)
 import "./ForgotPasswordPage.css";
 
 const ForgotPasswordPage = ({ onClose, onSwitchToLogin }) => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
-<<<<<<< HEAD
-
-  const handleSubmit = (e) => {
-=======
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
->>>>>>> 14cdde4 (updated files)
     e.preventDefault();
     if (!email.trim()) {
       setError("Please enter your email address.");
       return;
     }
-<<<<<<< HEAD
-    // Firebase reset password logic will go here later
-    console.log("Reset password for:", email);
-    setSubmitted(true);
-=======
     setError("");
     setIsLoading(true);
     try {
@@ -47,7 +34,6 @@ const ForgotPasswordPage = ({ onClose, onSwitchToLogin }) => {
     } finally {
       setIsLoading(false);
     }
->>>>>>> 14cdde4 (updated files)
   };
 
   return (
@@ -75,13 +61,8 @@ const ForgotPasswordPage = ({ onClose, onSwitchToLogin }) => {
                 {error && <span className="error">{error}</span>}
               </div>
 
-<<<<<<< HEAD
-              <button type="submit" className="forgot-btn">
-                Send Reset Link
-=======
               <button type="submit" className="forgot-btn" disabled={isLoading}>
                 {isLoading ? "Sending..." : "Send Reset Link"}
->>>>>>> 14cdde4 (updated files)
               </button>
             </form>
 

@@ -3,26 +3,6 @@
   src: url("../../assets/front1.ttf") format("truetype");
 }
 
-<<<<<<< HEAD
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.home-container {
-  width: 100vw;
-  height: 100vh;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-}
-
-/* Top Navigation */
-.home-nav {
-  position: absolute;
-=======
 /* ============================================================
    HOME PAGE — PARALLAX SCROLL LAYOUT
    Structure:
@@ -54,15 +34,11 @@
 /* ── Navigation ─────────────────────────────────────────── */
 .home-nav {
   position: fixed;
->>>>>>> 14cdde4 (updated files)
   top: 24px;
   right: 40px;
   display: flex;
   gap: 48px;
-<<<<<<< HEAD
-=======
   z-index: 100;
->>>>>>> 14cdde4 (updated files)
 }
 
 .nav-btn {
@@ -80,22 +56,6 @@
   opacity: 0.7;
 }
 
-<<<<<<< HEAD
-/* Bottom Left Image */
-.home-image-wrapper {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-
-.home-image {
-  width: 760px;
-  max-width: 80vw;
-  display: block;
-}
-
-/* Headings */
-=======
 /* ── Scroll Spacer ──────────────────────────────────────── */
 /* Gives the pinned hero animation exactly one viewport to play out.
    The parallax-layer sits on top (fixed), so this spacer is invisible
@@ -120,7 +80,6 @@
 }
 
 /* ── Hero Headings ──────────────────────────────────────── */
->>>>>>> 14cdde4 (updated files)
 .heading-batch-fund {
   position: absolute;
   top: 18%;
@@ -130,14 +89,9 @@
   font-weight: bold;
   color: #ffffff;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-<<<<<<< HEAD
-  pointer-events: none;
-  text-align: left;
-=======
   text-align: left;
   will-change: transform, opacity;
   white-space: nowrap;
->>>>>>> 14cdde4 (updated files)
 }
 
 .heading-collector {
@@ -145,15 +99,6 @@
   top: 40%;
   left: 53%;
   font-family: "FrontFont", sans-serif;
-<<<<<<< HEAD
-  font-size: 8rem; /* 4/5 of 10rem */
-  font-weight: bold;
-  color: #ffffff;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  text-align: left;
-}
-=======
   font-size: 8rem;
   font-weight: bold;
   color: #ffffff;
@@ -272,7 +217,8 @@
   height: 48px;
   border-radius: 50%;
   background-color: #ffffff;
-  color: #1a1a2e; /* dark color to show the icon inside white circle */
+  color: #1a1a2e;
+  /* dark color to show the icon inside white circle */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -290,4 +236,3 @@
   color: #ffffff;
   letter-spacing: 0.02em;
 }
->>>>>>> 14cdde4 (updated files)

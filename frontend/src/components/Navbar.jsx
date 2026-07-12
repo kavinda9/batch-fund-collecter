@@ -2,19 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchIcon, BellIcon, SunIcon, MoonIcon, MenuIcon } from './Icons';
 
-<<<<<<< HEAD
-export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSidebar }) => {
-=======
 export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSidebar, onSettings }) => {
->>>>>>> 14cdde4 (updated files)
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [searchVal, setSearchVal] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-<<<<<<< HEAD
-  const navigate = useNavigate();
-
-=======
   const [userProfile, setUserProfile] = useState({ name: '', regNumber: '' });
   const navigate = useNavigate();
 
@@ -24,16 +16,15 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
     fetch('http://localhost:5001/api/auth/profile', {
       headers: { Authorization: `Bearer ${token}` }
     })
-    .then(res => res.ok ? res.json() : null)
-    .then(data => {
-      if (data?.user) {
-        setUserProfile({ name: data.user.name || '', regNumber: data.user.regNumber || '' });
-      }
-    })
-    .catch(() => {});
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.user) {
+          setUserProfile({ name: data.user.name || '', regNumber: data.user.regNumber || '' });
+        }
+      })
+      .catch(() => { });
   }, []);
 
->>>>>>> 14cdde4 (updated files)
   // Apply theme to document element
   useEffect(() => {
     if (theme === 'dark') {
@@ -80,12 +71,12 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
     }}>
       {/* Left: Mobile Toggle & Page Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <button 
+        <button
           onClick={toggleMobileSidebar}
-          className="btn-secondary" 
-          style={{ 
-            display: 'none', 
-            padding: '0.5rem', 
+          className="btn-secondary"
+          style={{
+            display: 'none',
+            padding: '0.5rem',
             borderRadius: '8px',
             border: 'none',
             background: 'transparent',
@@ -102,7 +93,7 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
 
       {/* Right: Search, Actions, Profile */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-        
+
         {/* Search Bar */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} className="search-bar-container">
           <input
@@ -120,10 +111,10 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
               background: 'rgba(100,116,139,0.06)'
             }}
           />
-          <SearchIcon 
-            size={16} 
-            color="var(--text-muted)" 
-            style={{ position: 'absolute', left: '0.85rem', pointerEvents: 'none' }} 
+          <SearchIcon
+            size={16}
+            color="var(--text-muted)"
+            style={{ position: 'absolute', left: '0.85rem', pointerEvents: 'none' }}
           />
         </div>
 
@@ -184,7 +175,7 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div 
+            <div
               className="glass-card animate-scale"
               style={{
                 position: 'absolute',
@@ -223,7 +214,7 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
 
         {/* User Profile Info & Avatar */}
         <div style={{ position: 'relative' }}>
-          <div 
+          <div
             onClick={() => {
               setShowProfileMenu(!showProfileMenu);
               setShowNotifications(false);
@@ -247,24 +238,17 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }} className="nav-profile-name">
               <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)' }}>
-<<<<<<< HEAD
-                {userRole === 'Admin' ? 'Prof. Sharma' : 'Rahul Verma'}
-              </span>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                {userRole === 'Admin' ? 'Batch Coordinator' : 'Roll No: 22BCS108'}
-=======
                 {userProfile.name || (userRole === 'Admin' ? 'Admin' : 'Member')}
               </span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
                 {userRole === 'Admin' ? 'Batch Coordinator' : (userProfile.regNumber ? `Roll No: ${userProfile.regNumber}` : 'Member')}
->>>>>>> 14cdde4 (updated files)
               </span>
             </div>
           </div>
 
           {/* Profile Dropdown Menu */}
           {showProfileMenu && (
-            <div 
+            <div
               className="glass-card animate-scale"
               style={{
                 position: 'absolute',
@@ -278,34 +262,8 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
                 zIndex: 100
               }}
             >
-<<<<<<< HEAD
-              <div style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.25rem' }}>
-                Signed in as <br/>
-                <strong>{userRole === 'Admin' ? 'coordinator@univ.edu' : 'rahul.verma@student.edu'}</strong>
-              </div>
-              <button 
-                onClick={() => { navigate('/'); }}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '0.6rem 1rem',
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '0.75rem',
-                  color: 'var(--text-main)',
-                  cursor: 'pointer',
-                  display: 'block'
-                }}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(124, 58, 237, 0.05)'}
-                onMouseLeave={(e) => e.target.style.background = 'none'}
-              >
-                Change Role
-              </button>
-              <button 
-                onClick={() => { navigate('/'); }}
-=======
               {onSettings && (
-                <button 
+                <button
                   onClick={() => {
                     onSettings();
                     setShowProfileMenu(false);
@@ -327,12 +285,11 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
                   Settings
                 </button>
               )}
-              <button 
+              <button
                 onClick={() => {
                   localStorage.removeItem("token");
                   navigate('/');
                 }}
->>>>>>> 14cdde4 (updated files)
                 style={{
                   width: '100%',
                   textAlign: 'left',

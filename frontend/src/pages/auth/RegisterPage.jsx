@@ -1,10 +1,7 @@
 import React, { useState } from "react";
-<<<<<<< HEAD
-=======
 import axios from "axios";
 import { signInWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig";
->>>>>>> 14cdde4 (updated files)
 import "./RegisterPage.css";
 
 const RegisterPage = ({ onClose, onSwitchToLogin }) => {
@@ -20,12 +17,9 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
   });
 
   const [errors, setErrors] = useState({});
-<<<<<<< HEAD
-=======
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
->>>>>>> 14cdde4 (updated files)
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -64,26 +58,15 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
     return newErrors;
   };
 
-<<<<<<< HEAD
-  const handleSubmit = (e) => {
-    e.preventDefault();
-=======
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
     setSubmitSuccess("");
->>>>>>> 14cdde4 (updated files)
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-<<<<<<< HEAD
-    // Firebase register logic will go here later
-    console.log("Register:", formData);
-  };
-
-=======
 
     setIsLoading(true);
     try {
@@ -153,14 +136,11 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
     );
   }
 
->>>>>>> 14cdde4 (updated files)
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="register-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="register-title">Sign Up</h2>
 
-<<<<<<< HEAD
-=======
         {submitSuccess && (
           <div style={{
             background: "rgba(16, 185, 129, 0.1)",
@@ -191,7 +171,6 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
           </div>
         )}
 
->>>>>>> 14cdde4 (updated files)
         <form onSubmit={handleSubmit} className="register-form">
           {/* Name */}
           <div className="input-group">
@@ -347,13 +326,8 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
             )}
           </div>
 
-<<<<<<< HEAD
-          <button type="submit" className="register-btn">
-            Create Account
-=======
           <button type="submit" className="register-btn" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
->>>>>>> 14cdde4 (updated files)
           </button>
         </form>
 

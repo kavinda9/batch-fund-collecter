@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
-=======
 import axios from "axios";
 import { sendPasswordResetEmail, signInWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig";
->>>>>>> 14cdde4 (updated files)
 import "./LoginPage.css";
 
 const LoginPage = ({ onClose, onSwitchToSignup }) => {
@@ -15,39 +12,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
   const [error, setError] = useState("");
   const [forgotMode, setForgotMode] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
-<<<<<<< HEAD
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setError("");
-
-    // Mock Login Logic
-    if (email === "admin@batchfund.com" && password === "admin123") {
-      navigate("/admin");
-      onClose();
-    } else if (email.endsWith("@gmail.com") && password.trim().length >= 8) {
-      const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-      if (gmailRegex.test(email)) {
-        navigate("/landing");
-        onClose();
-      } else {
-        setError("Please enter a valid Gmail address.");
-      }
-    } else if (email.endsWith("@gmail.com")) {
-      setError("Password must be at least 8 characters.");
-    } else {
-      setError("Access Denied.");
-    }
-  };
-
-  const handleForgotPasswordSubmit = (e) => {
-    e.preventDefault();
-    setError("");
-    if (email.endsWith("@gmail.com") || email === "admin@batchfund.com") {
-      setResetSuccess(true);
-    } else {
-      setError("Please enter a valid registered email address.");
-=======
   const [isLoading, setIsLoading] = useState(false);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
@@ -126,7 +90,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
       }
     } finally {
       setIsLoading(false);
->>>>>>> 14cdde4 (updated files)
     }
   };
 
@@ -150,8 +113,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
           </div>
         )}
 
-<<<<<<< HEAD
-=======
         {emailNotVerified && (
           <div style={{
             background: "rgba(245, 158, 11, 0.1)",
@@ -196,7 +157,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
           </div>
         )}
 
->>>>>>> 14cdde4 (updated files)
         {resetSuccess && (
           <div style={{
             background: "rgba(16, 185, 129, 0.1)",
@@ -225,13 +185,8 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
               />
             </div>
 
-<<<<<<< HEAD
-            <button type="submit" className="login-btn">
-              Send Reset Link
-=======
             <button type="submit" className="login-btn" disabled={isLoading}>
               {isLoading ? "Sending..." : "Send Reset Link"}
->>>>>>> 14cdde4 (updated files)
             </button>
 
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
@@ -284,13 +239,8 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
               </a>
             </div>
 
-<<<<<<< HEAD
-            <button type="submit" className="login-btn">
-              Login
-=======
             <button type="submit" className="login-btn" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Login"}
->>>>>>> 14cdde4 (updated files)
             </button>
           </form>
         )}
@@ -309,5 +259,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
 };
 
 export default LoginPage;
+
 
 

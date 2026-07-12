@@ -1,69 +1,29 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-=======
 import React, { useState, useEffect } from 'react';
->>>>>>> 14cdde4 (updated files)
 import { useNavigate } from 'react-router-dom';
-import { 
-  DashboardIcon, StudentsIcon, FundIcon, IncomeIcon, ExpenseIcon, 
+import {
+  DashboardIcon, StudentsIcon, FundIcon, IncomeIcon, ExpenseIcon,
   EventIcon, AnalyticsIcon, SettingsIcon, LogoutIcon, PlusIcon,
   DownloadIcon, BellIcon, InfoIcon, CheckIcon, TrashIcon, EditIcon
 } from '../../components/Icons';
 import { Navbar } from '../../components/Navbar';
 import { QuickActionModal } from '../../components/QuickActionModal';
-import { 
-  IncomeExpenseBarChart, 
-  FundDistributionPieChart 
+import {
+  IncomeExpenseBarChart,
+  FundDistributionPieChart
 } from '../../components/Charts';
 
-<<<<<<< HEAD
-=======
 const API_BASE = "http://localhost:5001";
 
->>>>>>> 14cdde4 (updated files)
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Modals state
   const [modalType, setModalType] = useState(null); // 'add-income', 'add-expense', 'create-event', 'generate-report', 'receipt'
   const [selectedReceiptData, setSelectedReceiptData] = useState(null);
 
-<<<<<<< HEAD
-  // Mock data states
-  const [students, setStudents] = useState([
-    { id: 1, name: 'Rahul Verma', roll: '22BCS108', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-15' },
-    { id: 2, name: 'Amit Kumar', roll: '22BCS012', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-20' },
-    { id: 3, name: 'Priyanshu Sharma', roll: '22BCS015', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-10' },
-    { id: 4, name: 'Sneha Patel', roll: '22BCS144', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-28' },
-    { id: 5, name: 'Divya Teja', roll: '22BCS041', amountPaid: 0, dues: 3000, status: 'Unpaid', date: '-' },
-    { id: 6, name: 'Rohan Das', roll: '22BCS092', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-14' },
-    { id: 7, name: 'Anjali Gupta', roll: '22BCS021', amountPaid: 3000, dues: 0, status: 'Paid', date: '2026-06-19' },
-    { id: 8, name: 'Tarun Sen', roll: '22BCS120', amountPaid: 1500, dues: 1500, status: 'Partially Paid', date: '2026-05-25' }
-  ]);
-
-  const [expenses, setExpenses] = useState([
-    { id: 1, item: 'Farewell DJ Booking', amount: 12000, date: '2026-06-25', category: 'Events', spentBy: 'Farewell Committee', desc: 'Downpayment for Sound system & DJ setup.' },
-    { id: 2, item: 'Lab Journal Printing', amount: 4500, date: '2026-06-18', category: 'Supplies', spentBy: 'Rohan Das', desc: 'Coordinated printing for 60 lab copies.' },
-    { id: 3, item: 'Charity Food Drive', amount: 8000, date: '2026-06-05', category: 'Charity', spentBy: 'Sneha Patel', desc: 'Bought grains & meals for local orphanage.' },
-    { id: 4, item: 'Dean Meeting Caterers', amount: 2500, date: '2026-05-28', category: 'Others', spentBy: 'Prof. Sharma', desc: 'Refreshments for syllabus review meeting.' }
-  ]);
-
-  const [events, setEvents] = useState([
-    { id: 1, title: 'Farewell Gala 2026', date: '2026-07-15', dues: 500, venue: 'Main Auditorium', rsvp: 58, desc: 'Farewell celebration for outgoing seniors.' },
-    { id: 2, title: 'Batch Project Exhibition', date: '2026-07-28', dues: 0, venue: 'CSE Lab 2 & 3', rsvp: 45, desc: 'Showcase of mini projects to faculty panels.' }
-  ]);
-
-  const [activities, setActivities] = useState([
-    { id: 1, type: 'payment', text: 'Sneha Patel paid Rs. 1,500 for Monthly Contribution', time: 'June 28, 2026' },
-    { id: 2, type: 'expense', text: 'Recorded expense: Rs. 12,000 for Farewell DJ Booking', time: 'June 25, 2026' },
-    { id: 3, type: 'payment', text: 'Amit Kumar paid Rs. 1,500 for Monthly Contribution', time: 'June 20, 2026' },
-    { id: 4, type: 'expense', text: 'Recorded expense: Rs. 4,500 for Lab Journal Printing', time: 'June 18, 2026' },
-    { id: 5, type: 'payment', text: 'Rahul Verma paid Rs. 1,500 for Monthly Contribution', time: 'June 15, 2026' }
-  ]);
-=======
   // Stats aggregate values
   const [stats, setStats] = useState({
     totalBalance: 0,
@@ -92,7 +52,7 @@ const AdminDashboard = () => {
   const loadAllData = async () => {
     try {
       const headers = getAuthHeaders();
-      
+
       // Load dashboard stats
       const statsRes = await fetch(`${API_BASE}/api/admin/stats`, { headers });
       if (statsRes.ok) {
@@ -137,72 +97,11 @@ const AdminDashboard = () => {
   useEffect(() => {
     loadAllData();
   }, []);
->>>>>>> 14cdde4 (updated files)
 
   const handleSearch = (query) => {
     setSearchQuery(query.toLowerCase());
   };
 
-<<<<<<< HEAD
-  const handleModalSubmit = (formData) => {
-    if (modalType === 'add-income') {
-      const newStudentPay = {
-        id: students.length + 1,
-        name: formData.studentName,
-        roll: formData.rollNo,
-        amountPaid: Number(formData.amount),
-        dues: Math.max(0, 3000 - Number(formData.amount)),
-        status: Number(formData.amount) >= 3000 ? 'Paid' : 'Partially Paid',
-        date: formData.date
-      };
-      setStudents([newStudentPay, ...students]);
-      setActivities([
-        { id: Date.now(), type: 'payment', text: `${formData.studentName} paid Rs. ${formData.amount} for ${formData.purpose}`, time: formData.date },
-        ...activities
-      ]);
-    } else if (modalType === 'add-expense') {
-      const newExpense = {
-        id: expenses.length + 1,
-        item: formData.itemName,
-        amount: Number(formData.amount),
-        date: formData.date,
-        category: formData.category,
-        spentBy: formData.spentBy,
-        desc: formData.description
-      };
-      setExpenses([newExpense, ...expenses]);
-      setActivities([
-        { id: Date.now(), type: 'expense', text: `Recorded expense: Rs. ${formData.amount} for ${formData.itemName}`, time: formData.date },
-        ...activities
-      ]);
-    } else if (modalType === 'create-event') {
-      const newEvent = {
-        id: events.length + 1,
-        title: formData.eventTitle,
-        date: formData.date,
-        dues: Number(formData.contributionAmount),
-        venue: formData.venue,
-        rsvp: 0,
-        desc: formData.description
-      };
-      setEvents([newEvent, ...events]);
-      setActivities([
-        { id: Date.now(), type: 'event', text: `New event scheduled: "${formData.eventTitle}"`, time: formData.date },
-        ...activities
-      ]);
-    }
-  };
-
-  const deleteStudent = (id) => {
-    if (window.confirm("Are you sure you want to delete this student record?")) {
-      setStudents(students.filter(s => s.id !== id));
-    }
-  };
-
-  const deleteExpense = (id) => {
-    if (window.confirm("Are you sure you want to remove this expense record?")) {
-      setExpenses(expenses.filter(e => e.id !== id));
-=======
   const handleModalSubmit = async (formData) => {
     const headers = getAuthHeaders();
     try {
@@ -340,22 +239,15 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error("Reject slip failed:", error);
->>>>>>> 14cdde4 (updated files)
     }
   };
 
   const openReceipt = (student) => {
     setSelectedReceiptData({
       student: student.name,
-<<<<<<< HEAD
-      rollNo: student.roll,
-      amount: student.amountPaid,
-      date: student.date || '2026-06-15',
-=======
       rollNo: student.regNumber || student.roll,
       amount: student.amountPaid,
       date: student.lastPaymentDate || student.date || '2026-06-15',
->>>>>>> 14cdde4 (updated files)
       purpose: 'Regular Batch Contributions',
       txId: `TXN${1000000000 + Math.floor(Math.random() * 900000000)}`
     });
@@ -366,35 +258,15 @@ const AdminDashboard = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
-  const filteredStudents = students.filter(s => 
-<<<<<<< HEAD
-    s.name.toLowerCase().includes(searchQuery) || 
-    s.roll.toLowerCase().includes(searchQuery) ||
-    s.status.toLowerCase().includes(searchQuery)
-  );
-
-  const filteredExpenses = expenses.filter(e => 
-    e.item.toLowerCase().includes(searchQuery) || 
-    e.category.toLowerCase().includes(searchQuery) || 
-    e.spentBy.toLowerCase().includes(searchQuery)
-  );
-
-  // Stats calculation
-  const totalBalance = 154000;
-  const totalIncome = 212000;
-  const totalExpenses = 58000;
-  const pendingContributions = students.filter(s => s.status !== 'Paid').length;
-  const numStudents = students.length;
-  const upcomingEventsCount = events.length;
-=======
-    s.name?.toLowerCase().includes(searchQuery) || 
+  const filteredStudents = students.filter(s =>
+    s.name?.toLowerCase().includes(searchQuery) ||
     s.regNumber?.toLowerCase().includes(searchQuery) ||
     s.status?.toLowerCase().includes(searchQuery)
   );
 
-  const filteredExpenses = expenses.filter(e => 
-    e.item?.toLowerCase().includes(searchQuery) || 
-    e.category?.toLowerCase().includes(searchQuery) || 
+  const filteredExpenses = expenses.filter(e =>
+    e.item?.toLowerCase().includes(searchQuery) ||
+    e.category?.toLowerCase().includes(searchQuery) ||
     e.spentBy?.toLowerCase().includes(searchQuery)
   );
 
@@ -406,15 +278,11 @@ const AdminDashboard = () => {
   const numStudents = stats.memberCount;
   const upcomingEventsCount = events.length;
   const activities = stats.recentActivity;
->>>>>>> 14cdde4 (updated files)
 
   const sidebarItems = [
     { name: 'Dashboard', icon: <DashboardIcon /> },
     { name: 'Students', icon: <StudentsIcon /> },
-<<<<<<< HEAD
-=======
     { name: 'Slip Reviews', icon: <BellIcon /> },
->>>>>>> 14cdde4 (updated files)
     { name: 'Fund Management', icon: <FundIcon /> },
     { name: 'Income Records', icon: <IncomeIcon /> },
     { name: 'Expense Records', icon: <ExpenseIcon /> },
@@ -425,7 +293,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="app-container">
-      
+
       {/* Sidebar Navigation */}
       <aside style={{
         position: 'fixed',
@@ -442,7 +310,7 @@ const AdminDashboard = () => {
         transform: mobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.3s ease',
       }} className="sidebar-aside">
-        
+
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem', paddingLeft: '0.5rem' }}>
           <div style={{
@@ -528,23 +396,20 @@ const AdminDashboard = () => {
 
       {/* Main Panel Content */}
       <main className="main-content">
-        
+
         {/* Top Navbar */}
-        <Navbar 
-          title={`Admin / ${activeTab}`} 
-          userRole="Admin" 
+        <Navbar
+          title={`Admin / ${activeTab}`}
+          userRole="Admin"
           onSearch={handleSearch}
           toggleMobileSidebar={triggerMobileToggle}
-<<<<<<< HEAD
-=======
           onSettings={() => setActiveTab('Settings')}
->>>>>>> 14cdde4 (updated files)
         />
 
         {/* TAB 1: DASHBOARD VIEW */}
         {activeTab === 'Dashboard' && (
           <div className="animate-fade">
-            
+
             {/* Quick Actions Panel */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
@@ -552,10 +417,10 @@ const AdminDashboard = () => {
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Here is your batch financial health summary.</span>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <button onClick={() => setModalType('add-income')} className="btn btn-primary"><PlusIcon size={16}/> Add Income</button>
-                <button onClick={() => setModalType('add-expense')} className="btn btn-secondary"><PlusIcon size={16}/> Add Expense</button>
-                <button onClick={() => setModalType('create-event')} className="btn btn-outline"><EventIcon size={16}/> Create Event</button>
-                <button onClick={() => setModalType('generate-report')} className="btn btn-secondary"><DownloadIcon size={16}/> Generate Report</button>
+                <button onClick={() => setModalType('add-income')} className="btn btn-primary"><PlusIcon size={16} /> Add Income</button>
+                <button onClick={() => setModalType('add-expense')} className="btn btn-secondary"><PlusIcon size={16} /> Add Expense</button>
+                <button onClick={() => setModalType('create-event')} className="btn btn-outline"><EventIcon size={16} /> Create Event</button>
+                <button onClick={() => setModalType('generate-report')} className="btn btn-secondary"><DownloadIcon size={16} /> Generate Report</button>
               </div>
             </div>
 
@@ -566,7 +431,7 @@ const AdminDashboard = () => {
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
-              
+
               {/* Balance Widget */}
               <div className="glass-card active-border">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
@@ -639,13 +504,8 @@ const AdminDashboard = () => {
               gap: '1.5rem',
               marginBottom: '2rem'
             }}>
-<<<<<<< HEAD
-              <IncomeExpenseBarChart />
-              <FundDistributionPieChart />
-=======
               <IncomeExpenseBarChart slips={slips} expenses={expenses} />
               <FundDistributionPieChart expenses={expenses} />
->>>>>>> 14cdde4 (updated files)
             </div>
 
             {/* Bottom Section: Recent Activities & Fast Tables */}
@@ -654,14 +514,14 @@ const AdminDashboard = () => {
               gridTemplateColumns: '1.6fr 1fr',
               gap: '1.5rem'
             }} className="dashboard-grid-bottom">
-              
+
               {/* Payment Status Preview Table */}
               <div className="glass-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Student Payment Summary</h3>
                   <button onClick={() => setActiveTab('Students')} style={{ background: 'transparent', border: 'none', color: 'var(--primary-blue)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}>View All</button>
                 </div>
-                
+
                 <div className="table-container">
                   <table className="custom-table">
                     <thead>
@@ -675,20 +535,13 @@ const AdminDashboard = () => {
                     </thead>
                     <tbody>
                       {students.slice(0, 4).map((s) => (
-<<<<<<< HEAD
-                        <tr key={s.id}>
-                          <td style={{ fontWeight: '500' }}>{s.name}</td>
-                          <td>{s.roll}</td>
-=======
                         <tr key={s.uid || s.id}>
                           <td style={{ fontWeight: '500' }}>{s.name}</td>
                           <td>{s.regNumber || s.roll}</td>
->>>>>>> 14cdde4 (updated files)
                           <td style={{ fontWeight: '600' }}>Rs. {s.amountPaid.toLocaleString()}</td>
                           <td>
-                            <span className={`badge ${
-                              s.status === 'Paid' ? 'badge-success' : s.status === 'Partially Paid' ? 'badge-warning' : 'badge-danger'
-                            }`}>{s.status}</span>
+                            <span className={`badge ${s.status === 'Paid' ? 'badge-success' : s.status === 'Partially Paid' ? 'badge-warning' : 'badge-danger'
+                              }`}>{s.status}</span>
                           </td>
                           <td>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -742,7 +595,7 @@ const AdminDashboard = () => {
                 <h2 style={{ fontSize: '1.35rem', fontWeight: '700' }}>Monthly Fund Collection</h2>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Log contributions and view balances for all {students.length} students.</span>
               </div>
-              <button onClick={() => setModalType('add-income')} className="btn btn-primary"><PlusIcon size={16}/> Record Student Payment</button>
+              <button onClick={() => setModalType('add-income')} className="btn btn-primary"><PlusIcon size={16} /> Record Student Payment</button>
             </div>
 
             <div className="table-container">
@@ -760,49 +613,29 @@ const AdminDashboard = () => {
                 </thead>
                 <tbody>
                   {filteredStudents.map((s) => (
-<<<<<<< HEAD
-                    <tr key={s.id}>
-                      <td style={{ fontWeight: '600' }}>{s.name}</td>
-                      <td>{s.roll}</td>
-                      <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {s.amountPaid.toLocaleString()}</td>
-                      <td style={{ fontWeight: '700', color: s.dues > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>Rs. {s.dues.toLocaleString()}</td>
-                      <td>{s.date}</td>
-=======
                     <tr key={s.uid || s.id}>
                       <td style={{ fontWeight: '600' }}>{s.name}</td>
                       <td>{s.regNumber || s.roll}</td>
                       <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {s.amountPaid.toLocaleString()}</td>
                       <td style={{ fontWeight: '700', color: (3000 - s.amountPaid) > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>Rs. {Math.max(0, 3000 - s.amountPaid).toLocaleString()}</td>
                       <td>{s.lastPaymentDate || s.date || '-'}</td>
->>>>>>> 14cdde4 (updated files)
                       <td>
-                        <span className={`badge ${
-                          s.status === 'Paid' ? 'badge-success' : s.status === 'Partially Paid' ? 'badge-warning' : 'badge-danger'
-                        }`}>{s.status}</span>
+                        <span className={`badge ${s.status === 'Paid' ? 'badge-success' : s.status === 'Partially Paid' ? 'badge-warning' : 'badge-danger'
+                          }`}>{s.status}</span>
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.4rem' }}>
                           <button onClick={() => openReceipt(s)} className="btn btn-secondary" style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem' }}>Receipt</button>
-<<<<<<< HEAD
-                          {s.dues > 0 && (
-                            <button 
-                              onClick={() => alert(`Reminder notification sent successfully to ${s.name} (${s.roll})!`)}
-=======
                           {s.amountPaid < 3000 && (
-                            <button 
+                            <button
                               onClick={() => alert(`Reminder notification sent successfully to ${s.name} (${s.regNumber || s.roll})!`)}
->>>>>>> 14cdde4 (updated files)
-                              className="btn btn-outline" 
+                              className="btn btn-outline"
                               style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', color: 'var(--primary-purple)', borderColor: 'var(--primary-purple)' }}
                             >
                               Remind
                             </button>
                           )}
-<<<<<<< HEAD
-                          <button onClick={() => deleteStudent(s.id)} className="btn" style={{ padding: '0.35rem', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
-=======
                           <button onClick={() => deleteStudent(s.uid || s.id)} className="btn" style={{ padding: '0.35rem', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
->>>>>>> 14cdde4 (updated files)
                             <TrashIcon size={16} />
                           </button>
                         </div>
@@ -822,8 +655,6 @@ const AdminDashboard = () => {
           </div>
         )}
 
-<<<<<<< HEAD
-=======
         {/* TAB: SLIP REVIEWS TAB */}
         {activeTab === 'Slip Reviews' && (
           <div className="glass-card animate-fade">
@@ -855,15 +686,14 @@ const AdminDashboard = () => {
                       <td style={{ fontFamily: 'monospace' }}>{slip.regNumber || '-'}</td>
                       <td style={{ fontWeight: '700' }}>Rs. {slip.amount?.toLocaleString()}</td>
                       <td>
-                        <span className={`badge ${
-                          slip.status === 'approved' ? 'badge-success' : slip.status === 'pending' ? 'badge-warning' : 'badge-danger'
-                        }`}>{slip.status}</span>
+                        <span className={`badge ${slip.status === 'approved' ? 'badge-success' : slip.status === 'pending' ? 'badge-warning' : 'badge-danger'
+                          }`}>{slip.status}</span>
                       </td>
                       <td>
                         {slip.slipUrl ? (
-                          <a 
-                            href={`${API_BASE}${slip.slipUrl}`} 
-                            target="_blank" 
+                          <a
+                            href={`${API_BASE}${slip.slipUrl}`}
+                            target="_blank"
                             rel="noopener noreferrer"
                             style={{ color: 'var(--primary-blue)', textDecoration: 'underline', fontSize: '0.85rem' }}
                           >
@@ -874,15 +704,15 @@ const AdminDashboard = () => {
                       <td>
                         {slip.status === 'pending' ? (
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button 
-                              onClick={() => approveSlip(slip.id)} 
+                            <button
+                              onClick={() => approveSlip(slip.id)}
                               className="btn btn-primary"
                               style={{ padding: '0.35rem 0.60rem', fontSize: '0.75rem' }}
                             >
                               Approve
                             </button>
-                            <button 
-                              onClick={() => rejectSlip(slip.id)} 
+                            <button
+                              onClick={() => rejectSlip(slip.id)}
                               className="btn btn-secondary"
                               style={{ padding: '0.35rem 0.60rem', fontSize: '0.75rem', color: 'var(--danger)' }}
                             >
@@ -910,14 +740,13 @@ const AdminDashboard = () => {
           </div>
         )}
 
->>>>>>> 14cdde4 (updated files)
         {/* TAB 3: FUND MANAGEMENT TAB */}
         {activeTab === 'Fund Management' && (
           <div className="animate-fade" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="glass-card">
               <h2 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', fontWeight: '700' }}>Overall Fund Administration</h2>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Track general budget targets, approvals, and allocation pools.</span>
-              
+
               {/* Financial Progress Indicator */}
               <div style={{ marginTop: '2rem', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
@@ -997,7 +826,7 @@ const AdminDashboard = () => {
                 <h2 style={{ fontSize: '1.35rem', fontWeight: '700' }}>Income Ledger</h2>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Lists of all receipts, student contributions, and sponsorship inputs.</span>
               </div>
-              <button onClick={() => setModalType('add-income')} className="btn btn-primary"><PlusIcon size={16}/> Log Income</button>
+              <button onClick={() => setModalType('add-income')} className="btn btn-primary"><PlusIcon size={16} /> Log Income</button>
             </div>
 
             <div className="table-container">
@@ -1015,19 +844,6 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-<<<<<<< HEAD
-                  {filteredStudents.map((s, idx) => (
-                    <tr key={s.id}>
-                      <td style={{ fontFamily: 'monospace' }}>INC{s.id * 102}</td>
-                      <td style={{ fontWeight: '600' }}>{s.name}</td>
-                      <td>{s.roll}</td>
-                      <td>Monthly Contribution</td>
-                      <td>UPI</td>
-                      <td>{s.date}</td>
-                      <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {s.amountPaid.toLocaleString()}</td>
-                      <td>
-                        <button onClick={() => openReceipt(s)} className="btn btn-secondary" style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}>
-=======
                   {slips.filter(slip => slip.status === 'approved').map((slip, idx) => (
                     <tr key={slip.id}>
                       <td style={{ fontFamily: 'monospace' }}>INC{idx + 1}</td>
@@ -1038,34 +854,21 @@ const AdminDashboard = () => {
                       <td>{slip.createdAt ? new Date(slip.createdAt).toLocaleDateString("en-GB") : '-'}</td>
                       <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. {slip.amount?.toLocaleString()}</td>
                       <td>
-                        <button 
-                          onClick={() => openReceipt({ 
-                            name: slip.name, 
-                            roll: slip.regNumber, 
-                            amountPaid: slip.amount, 
-                            date: slip.createdAt ? new Date(slip.createdAt).toLocaleDateString("en-GB") : '-' 
-                          })} 
-                          className="btn btn-secondary" 
+                        <button
+                          onClick={() => openReceipt({
+                            name: slip.name,
+                            roll: slip.regNumber,
+                            amountPaid: slip.amount,
+                            date: slip.createdAt ? new Date(slip.createdAt).toLocaleDateString("en-GB") : '-'
+                          })}
+                          className="btn btn-secondary"
                           style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
                         >
->>>>>>> 14cdde4 (updated files)
-                          <DownloadIcon size={12}/> View
+                          <DownloadIcon size={12} /> View
                         </button>
                       </td>
                     </tr>
                   ))}
-<<<<<<< HEAD
-                  <tr>
-                    <td style={{ fontFamily: 'monospace' }}>INC-EXT-1</td>
-                    <td style={{ fontWeight: '600' }}>CSE Department Office</td>
-                    <td>-</td>
-                    <td>Exhibition Sponsorship</td>
-                    <td>Bank Transfer</td>
-                    <td>2026-06-10</td>
-                    <td style={{ fontWeight: '700', color: 'var(--success)' }}>Rs. 15,000</td>
-                    <td>-</td>
-                  </tr>
-=======
                   {slips.filter(slip => slip.status === 'approved').length === 0 && (
                     <tr>
                       <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
@@ -1073,7 +876,6 @@ const AdminDashboard = () => {
                       </td>
                     </tr>
                   )}
->>>>>>> 14cdde4 (updated files)
                 </tbody>
               </table>
             </div>
@@ -1088,7 +890,7 @@ const AdminDashboard = () => {
                 <h2 style={{ fontSize: '1.35rem', fontWeight: '700' }}>Expense Ledger</h2>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Tracking of all funds disbursed for student activities, events, and supplies.</span>
               </div>
-              <button onClick={() => setModalType('add-expense')} className="btn btn-primary"><PlusIcon size={16}/> Record Expense</button>
+              <button onClick={() => setModalType('add-expense')} className="btn btn-primary"><PlusIcon size={16} /> Record Expense</button>
             </div>
 
             <div className="table-container">
@@ -1109,9 +911,8 @@ const AdminDashboard = () => {
                     <tr key={exp.id}>
                       <td style={{ fontWeight: '600' }}>{exp.item}</td>
                       <td>
-                        <span className={`badge ${
-                          exp.category === 'Events' ? 'badge-info' : exp.category === 'Supplies' ? 'badge-warning' : exp.category === 'Charity' ? 'badge-success' : 'badge-danger'
-                        }`}>{exp.category}</span>
+                        <span className={`badge ${exp.category === 'Events' ? 'badge-info' : exp.category === 'Supplies' ? 'badge-warning' : exp.category === 'Charity' ? 'badge-success' : 'badge-danger'
+                          }`}>{exp.category}</span>
                       </td>
                       <td>{exp.spentBy}</td>
                       <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{exp.desc}</td>
@@ -1147,7 +948,7 @@ const AdminDashboard = () => {
                 <h2 style={{ fontSize: '1.35rem', fontWeight: '700' }}>Event & Activity Planning</h2>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Manage student events, RSVPs, and related ticket pricing contributions.</span>
               </div>
-              <button onClick={() => setModalType('create-event')} className="btn btn-primary"><PlusIcon size={16}/> Setup New Event</button>
+              <button onClick={() => setModalType('create-event')} className="btn btn-primary"><PlusIcon size={16} /> Setup New Event</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
@@ -1157,29 +958,23 @@ const AdminDashboard = () => {
                     <span style={{ background: 'rgba(37,99,235,0.08)', color: 'var(--primary-blue)', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '600' }}>
                       {event.date}
                     </span>
-<<<<<<< HEAD
-                    <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--primary-purple)' }}>
-                      {event.dues > 0 ? `Cost: Rs. ${event.dues}/head` : 'Free Event'}
-                    </span>
-=======
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--primary-purple)' }}>
                         {event.dues > 0 ? `Cost: Rs. ${event.dues}/head` : 'Free Event'}
                       </span>
-                      <button 
-                        onClick={() => deleteEvent(event.id)} 
-                        className="btn" 
+                      <button
+                        onClick={() => deleteEvent(event.id)}
+                        className="btn"
                         style={{ padding: '0.2rem', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}
                         title="Delete Event"
                       >
                         <TrashIcon size={14} />
                       </button>
                     </div>
->>>>>>> 14cdde4 (updated files)
                   </div>
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{event.title}</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', height: '40px', overflow: 'hidden' }}>{event.desc}</p>
-                  
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem', fontSize: '0.8rem' }}>
                     <div>
                       <span style={{ color: 'var(--text-muted)' }}>Venue:</span> <strong style={{ color: 'var(--text-main)' }}>{event.venue}</strong>
@@ -1198,7 +993,7 @@ const AdminDashboard = () => {
         {activeTab === 'Settings' && (
           <div className="glass-card animate-fade" style={{ maxWidth: '640px' }}>
             <h2 style={{ fontSize: '1.35rem', marginBottom: '1.5rem', fontWeight: '700' }}>System Configurations</h2>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
@@ -1250,9 +1045,9 @@ const AdminDashboard = () => {
 
       {/* Floating Modals */}
       {modalType && (
-        <QuickActionModal 
-          type={modalType} 
-          onClose={() => setModalType(null)} 
+        <QuickActionModal
+          type={modalType}
+          onClose={() => setModalType(null)}
           onSubmit={handleModalSubmit}
           data={selectedReceiptData}
         />
