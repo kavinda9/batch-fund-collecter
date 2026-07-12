@@ -13,7 +13,8 @@ export const Navbar = ({ title, userRole = 'Admin', onSearch, toggleMobileSideba
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    fetch('http://localhost:5001/api/auth/profile', {
+    const API_BASE = import.meta.env.VITE_API_URL;
+    fetch(`${API_BASE}/api/auth/profile`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : null)

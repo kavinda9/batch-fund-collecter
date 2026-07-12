@@ -1,41 +1,41 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - '5173:5173'
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-<<<<<<< HEAD
-      - VITE_API_URL=http://localhost:5000
-=======
-      - VITE_API_URL=http://localhost:5001
->>>>>>> 14cdde4 (updated files)
-    depends_on:
-      - backend
-
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+
+    container_name: batch-fund-backend
+
     ports:
-<<<<<<< HEAD
-      - '5000:5000'
-=======
-      - '5001:5001'
->>>>>>> 14cdde4 (updated files)
+      - "5001:5001"
+
     volumes:
       - ./backend:/app
       - /app/node_modules
+
     env_file:
       - ./backend/.env
+
     restart: unless-stopped
 
-networks:
-  default:
-    name: batch-fund-network
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: batch-fund-frontend
+
+    ports:
+      - "5173:5173"
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+    environment:
+      - VITE_API_URL=http://backend:5001
+
+    depends_on:
+      - backend
+
+    restart: unless-stopped

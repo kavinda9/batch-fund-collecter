@@ -71,7 +71,8 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
     setIsLoading(true);
     try {
       // 1. Create account in Firebase Auth + save profile in Firestore
-      const response = await axios.post("http://localhost:5001/api/auth/register", formData);
+      const API_BASE = import.meta.env.VITE_API_URL;
+      const response = await axios.post(`${API_BASE}/api/auth/register`, formData);
 
       if (response.data.success) {
         // 2. Sign in briefly with Firebase Client SDK to get a user object

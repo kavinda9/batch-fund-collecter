@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./PayFund.css";
 import bankLogo from "../../assets/bank.png";
 
-const API_BASE = "http://localhost:5001";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 /* ============================================================
    PayFund.jsx

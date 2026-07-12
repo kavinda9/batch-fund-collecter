@@ -5,7 +5,7 @@ import logo2 from "../../assets/logo2.png";
 import logo3 from "../../assets/logo3.png";
 import "./LandingPage.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",

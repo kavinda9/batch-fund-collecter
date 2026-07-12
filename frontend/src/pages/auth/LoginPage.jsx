@@ -24,7 +24,8 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5001/api/auth/login", {
+      const API_BASE = import.meta.env.VITE_API_URL;
+      const response = await axios.post(`${API_BASE}/api/auth/login`, {
         email,
         password,
       });

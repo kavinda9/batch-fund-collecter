@@ -8,7 +8,7 @@ import {
 import { Navbar } from '../../components/Navbar';
 import { QuickActionModal } from '../../components/QuickActionModal';
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
