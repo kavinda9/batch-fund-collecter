@@ -1,0 +1,34 @@
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
+import admin from "firebase-admin";
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+dotenv.config({ path: resolve(__dirname, '../../.env') })
+
+const cleanEnvVar = (val) => {
+  if (!val) return val;
+  return val.replace(/^["']|["']$/g, '').trim();
+};
+
+const projectId = cleanEnvVar(process.env.FIREBASE_PROJECT_ID);
+const clientEmail = cleanEnvVar(process.env.FIREBASE_CLIENT_EMAIL);
+const storageBucket = cleanEnvVar(process.env.FIREBASE_STORAGE_BUCKET) || `${projectId}.firebasestorage.app`;
+const privateKey = process.env.FIREBASE_PRIVATE_KEY
+  ? cleanEnvVar(process.env.FIREBASE_PRIVATE_KEY).replace(/\\n/g, "\n")
+  : undefined;
+
+admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: projectId,
+    clientEmail: clientEmail,
+    privateKey: privateKey,
+  }),
+  storageBucket: storageBucket,
+});
+
+const db = admin.firestore();
+
+export { admin, db };
+export default admin;
