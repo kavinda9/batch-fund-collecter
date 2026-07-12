@@ -4,6 +4,7 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
 
     container_name: batch-fund-backend
 
@@ -22,6 +23,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
 
     container_name: batch-fund-frontend
 
@@ -33,9 +35,13 @@ services:
       - /app/node_modules
 
     environment:
-      - VITE_API_URL=http://backend:5001
+      - VITE_API_URL=http://localhost:5001
 
     depends_on:
       - backend
 
     restart: unless-stopped
+
+networks:
+  default:
+    name: batch-fund-network
