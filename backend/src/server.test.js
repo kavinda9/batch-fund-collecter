@@ -20,37 +20,55 @@ describe('Server Endpoints', () => {
     expect(res.body).toEqual({ error: 'Route not found' })
   })
 
-  it('GET /api/admin/dashboard should return a dashboard snapshot for admins', async () => {
+  it('GET /api/admin/stats should return stats for admins', async () => {
     const res = await request(app)
-      .get('/api/admin/dashboard')
+      .get('/api/admin/stats')
       .set(adminAuthHeader)
 
     expect(res.statusCode).toEqual(200)
     expect(res.body).toHaveProperty('success', true)
-    expect(res.body).toHaveProperty('summary')
-    expect(res.body).toHaveProperty('students')
-    expect(Array.isArray(res.body.students)).toBe(true)
+    expect(res.body).toHaveProperty('stats')
+    expect(res.body.stats).toHaveProperty('totalBalance')
+    expect(res.body.stats).toHaveProperty('totalIncome')
+    expect(res.body.stats).toHaveProperty('totalExpenses')
+    expect(res.body.stats).toHaveProperty('pendingCount')
+    expect(res.body.stats).toHaveProperty('memberCount')
+    expect(Array.isArray(res.body.stats.recentActivity)).toBe(true)
   })
 
-  it('POST /api/admin/students/payments should create a new student payment', async () => {
-    const res = await request(app)
-      .post('/api/admin/students/payments')
+  it('POST /api/admin/expenses should create and delete an expense record', async () => {
+    const createRes = await request(app)
+      .post('/api/admin/expenses')
       .set(adminAuthHeader)
       .send({
-        studentName: 'Test Student',
-        rollNo: '22BCS999',
-        amount: 500,
+        item: 'Test Expense Item',
+        amount: 350,
         date: '2026-07-09',
-        purpose: 'Monthly Contribution',
-        paymentMode: 'UPI'
+        category: 'Food',
+        spentBy: 'Test Admin User',
+        desc: 'Testing create and delete'
       })
 
-    expect(res.statusCode).toEqual(201)
-    expect(res.body).toHaveProperty('success', true)
-    expect(res.body.student).toMatchObject({
-      name: 'Test Student',
-      roll: '22BCS999',
-      amountPaid: 500
+    expect(createRes.statusCode).toEqual(201)
+    expect(createRes.body).toHaveProperty('success', true)
+    expect(createRes.body.expense).toMatchObject({
+      item: 'Test Expense Item',
+      amount: 350,
+      date: '2026-07-09',
+      category: 'Food',
+      spentBy: 'Test Admin User',
+      desc: 'Testing create and delete'
     })
+
+    const expenseId = createRes.body.expense.id
+    expect(expenseId).toBeDefined()
+
+    // Cleanup: delete the created expense record
+    const deleteRes = await request(app)
+      .delete(`/api/admin/expenses/${expenseId}`)
+      .set(adminAuthHeader)
+
+    expect(deleteRes.statusCode).toEqual(200)
+    expect(deleteRes.body).toHaveProperty('success', true)
   })
 })
