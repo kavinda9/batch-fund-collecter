@@ -9,22 +9,22 @@ const router = express.Router();
 router.use(verifyToken);
 router.use(adminMiddleware);
 
-// ── Member Management ────────────────────────
-router.get("/members", adminController.getMembers);
-router.delete("/members/:uid", adminController.deleteMember);
+// ── Dashboard & Settings ─────────────────────
+router.get("/dashboard", adminController.getDashboard);
+router.get("/settings", adminController.getSettings);
+router.put("/settings", adminController.updateSettings);
+
+// ── Member / Student Management ──────────────
+router.post("/students/payments", adminController.addStudentPayment);
+router.delete("/students/:id", adminController.deleteStudentRecord);
 
 // ── Expense Management ───────────────────────
 router.get("/expenses", adminController.getExpenses);
-router.post("/expenses", adminController.createExpense);
-router.delete("/expenses/:id", adminController.deleteExpense);
+router.post("/expenses", adminController.addExpense);
+router.delete("/expenses/:id", adminController.deleteExpenseRecord);
 
 // ── Event Management ─────────────────────────
 router.get("/events", adminController.getEvents);
-router.post("/events", adminController.createEvent);
-router.delete("/events/:id", adminController.deleteEvent);
-
-// ── Announcement Management ──────────────────
-router.post("/announcements", adminController.createAnnouncement);
-router.delete("/announcements/:id", adminController.deleteAnnouncement);
+router.post("/events", adminController.addEvent);
 
 export default router;

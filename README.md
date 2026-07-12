@@ -40,7 +40,7 @@ docker-compose up --build
 cd backend
 cp .env.example .env
 npm install
-npm run dev
+npm start
 ```
 
 **Frontend:**
