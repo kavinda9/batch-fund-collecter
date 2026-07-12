@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import 'dotenv/config'
-=======
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, resolve, join } from 'path'
@@ -8,16 +5,10 @@ import { dirname, resolve, join } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 dotenv.config({ path: resolve(__dirname, '../.env') })
->>>>>>> 14cdde4 (updated files)
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
-<<<<<<< HEAD
-
-const app = express()
-const PORT = process.env.PORT || 5000
-=======
 import "./config/firebase.js";
 import authRoutes from "./routes/authRoutes.js";
 import slipRoutes from "./routes/slipRoutes.js";
@@ -27,7 +18,6 @@ import userRoutes from "./routes/userRoutes.js";
 
 const app = express()
 const PORT = process.env.PORT || 5001
->>>>>>> 14cdde4 (updated files)
 
 // Middleware
 app.use(helmet())
@@ -36,8 +26,6 @@ app.use(morgan('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-<<<<<<< HEAD
-=======
 // Serve uploaded slip images statically
 app.use('/uploads', express.static(join(__dirname, '../uploads')))
 
@@ -48,7 +36,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 
 
->>>>>>> 14cdde4 (updated files)
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

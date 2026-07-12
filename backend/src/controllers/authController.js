@@ -242,8 +242,8 @@ const updateProfile = async (req, res) => {
 };
 
 export default {
-    getProfile,
-    register,
-    login,
-    updateProfile
+  getProfile,
+  register,
+  login,
+  updateProfile
 };

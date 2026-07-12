@@ -216,8 +216,8 @@ const getMembers = async (req, res) => {
           pInfo.totalPaid === 0
             ? "Unpaid"
             : pInfo.totalPaid < 3000
-            ? "Partially Paid"
-            : "Paid",
+              ? "Partially Paid"
+              : "Paid",
       };
     });
 

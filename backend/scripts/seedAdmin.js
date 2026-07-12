@@ -4,7 +4,7 @@ import admin, { db } from '../src/config/firebase.js';
 async function seedAdmin() {
   const adminEmail = 'admin@batchfund.com';
   const adminPassword = 'admin123';
-  
+
   try {
     console.log(`Seeding Admin: Checking if ${adminEmail} exists...`);
     let userRecord;

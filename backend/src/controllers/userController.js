@@ -14,7 +14,7 @@ const getStats = async (req, res) => {
       .collection("payments")
       .where("status", "==", "approved")
       .get();
-    
+
     const totalCollected = approvedPaymentsSnap.docs.reduce(
       (sum, doc) => sum + (doc.data().amount || 0),
       0
@@ -162,7 +162,7 @@ const toggleRSVP = async (req, res) => {
     // Perform transaction to keep RSVP counter updated in events document
     await db.runTransaction(async (transaction) => {
       const currentRsvpStatus = existingRsvp.exists ? existingRsvp.data().status : null;
-      
+
       // Update rsvps collection doc
       transaction.set(rsvpRef, {
         uid,
