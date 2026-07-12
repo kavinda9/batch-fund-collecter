@@ -1,0 +1,150 @@
+@font-face {
+  font-family: "FrontFont";
+  src: url("../../assets/front1.ttf") format("truetype");
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+.about-page-container {
+  min-height: 100vh;
+  width: 100%;
+  background-image: url("../../assets/background2.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px 24px 60px;
+}
+
+/* ── Navigation ─────────────────────────────────────────── */
+.home-nav {
+  position: fixed;
+  top: 24px;
+  right: 40px;
+  display: flex;
+  gap: 48px;
+  z-index: 100;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: opacity 0.2s ease;
+}
+
+.nav-btn:hover {
+  opacity: 0.7;
+}
+
+.active-btn {
+  border-bottom: 2px solid #ffffff !important;
+  font-weight: 700;
+}
+
+/* ── Main Content Area ───────────────────────────────────── */
+.about-page-main {
+  max-width: 800px;
+  width: 100%;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: fade-up 0.5s ease-out;
+}
+
+.about-page-title {
+  font-family: "FrontFont", sans-serif;
+  font-size: 4.5rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  margin-bottom: 1rem;
+}
+
+.about-page-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.about-mission-title {
+  font-family: "FrontFont", sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.5rem;
+}
+
+.about-mission-desc {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1.5rem;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contact-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
+}
+
+.contact-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.contact-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

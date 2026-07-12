@@ -1,76 +1,101 @@
-// frontend/src/pages/auth/LoginPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth.js";
-import { apiRequest } from "../../utils/api.js";
+import axios from "axios";
+import { sendPasswordResetEmail, signInWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
+import { auth } from "../../firebase/firebaseConfig";
+import API_BASE from "../../services/api";
 import "./LoginPage.css";
 
 const LoginPage = ({ onClose, onSwitchToSignup }) => {
   const navigate = useNavigate();
-  const { login, resetPassword } = useAuth(); // Connect Firebase context actions
-  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [forgotMode, setForgotMode] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    setSubmitting(true);
+    setEmailNotVerified(false);
+    setResendSuccess(false);
+    setIsLoading(true);
 
     try {
-      // Step 1: Run client authentication check against Firebase Auth Core
-      await login(email, password);
-
-      // Step 2: Query backend token verification endpoint to obtain verified system custom claims
-      const userProfile = await apiRequest("/api/auth/verify", {
-        method: "POST"
+      const response = await axios.post(`${API_BASE}/api/auth/login`, {
+        email,
+        password,
       });
 
-      // Harmonize older dashboard requirements by setting both storage parameters uniformly
-      const assignedRole = userProfile.user?.role;
-      localStorage.setItem("batchFundUserRole", assignedRole);
-
-      // Close modal popup interface elements
-      if (onClose) onClose();
-
-      // Step 3: Smart Routing gate redirection execution
-      if (assignedRole === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/landing");
+      if (response.data.success) {
+        const { token, user } = response.data;
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        onClose();
+        if (user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/landing");
+        }
       }
     } catch (err) {
-      console.error("Login verification lifecycle failure:", err);
-      setError(err.message || "Invalid credentials or authentication server unreachable.");
+      console.error("Login error:", err);
+      if (err.response && err.response.data) {
+        if (err.response.data.code === "EMAIL_NOT_VERIFIED") {
+          setEmailNotVerified(true);
+        } else {
+          setError(err.response.data.message || "Login failed.");
+        }
+      } else {
+        setError("Failed to connect to backend server.");
+      }
     } finally {
-      setSubmitting(false);
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendSuccess(false);
+    setError("");
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      await signOut(auth);
+      setResendSuccess(true);
+    } catch (err) {
+      console.error("Resend verification error:", err);
+      setError("Could not resend verification email. Please check your email and password.");
     }
   };
 
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setResetSuccess(false);
-    setSubmitting(true);
-
+    setIsLoading(true);
     try {
-      // Wire password reset handler down to live custom context hook method
-      await resetPassword(email);
+      await sendPasswordResetEmail(auth, email);
       setResetSuccess(true);
     } catch (err) {
-      console.error("Password recovery failure:", err);
-      setError(err.message || "Failed to transmit recovery reset routing instructions.");
+      console.error("Password reset error:", err);
+      if (err.code === "auth/user-not-found") {
+        setError("No account found with this email address.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many attempts. Please wait a moment and try again.");
+      } else {
+        setError("Failed to send reset email. Please try again.");
+      }
     } finally {
-      setSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={!submitting ? onClose : undefined}>
+    <div className="modal-overlay" onClick={onClose}>
       <div className="login-box" onClick={(e) => e.stopPropagation()}>
         <h2 className="login-title">{forgotMode ? "Reset Password" : "Login"}</h2>
 
@@ -86,6 +111,50 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
             textAlign: "center"
           }}>
             {error}
+          </div>
+        )}
+
+        {emailNotVerified && (
+          <div style={{
+            background: "rgba(245, 158, 11, 0.1)",
+            border: "1px solid rgba(245, 158, 11, 0.4)",
+            color: "#f59e0b",
+            padding: "0.85rem",
+            borderRadius: "8px",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+            textAlign: "center",
+            lineHeight: "1.5"
+          }}>
+            <div style={{ marginBottom: "0.5rem" }}>
+              📧 Please verify your email before logging in.
+            </div>
+            <span
+              onClick={handleResendVerification}
+              style={{
+                color: "#5ced73",
+                cursor: "pointer",
+                textDecoration: "underline",
+                fontSize: "0.8rem"
+              }}
+            >
+              Resend verification email
+            </span>
+          </div>
+        )}
+
+        {resendSuccess && (
+          <div style={{
+            background: "rgba(16, 185, 129, 0.1)",
+            border: "1px solid rgba(16, 185, 129, 0.3)",
+            color: "#10b981",
+            padding: "0.75rem",
+            borderRadius: "8px",
+            fontSize: "0.85rem",
+            marginBottom: "1rem",
+            textAlign: "center"
+          }}>
+            ✅ Verification email resent! Check your inbox.
           </div>
         )}
 
@@ -113,24 +182,22 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
                 placeholder="Enter your registered email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={submitting}
                 required
               />
             </div>
 
-            <button type="submit" className="login-btn" disabled={submitting}>
-              {submitting ? "Transmitting..." : "Send Reset Link"}
+            <button type="submit" className="login-btn" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </button>
 
             <div style={{ textAlign: "center", marginTop: "1rem" }}>
               <span
                 className="signup-link"
-                style={{ cursor: submitting ? "not-allowed" : "pointer" }}
-                onClick={!submitting ? () => {
+                onClick={() => {
                   setForgotMode(false);
                   setResetSuccess(false);
                   setError("");
-                } : undefined}
+                }}
               >
                 Back to Login
               </span>
@@ -145,7 +212,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={submitting}
                 required
               />
             </div>
@@ -157,7 +223,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={submitting}
                 required
               />
             </div>
@@ -165,7 +230,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
             <div className="forgot-password">
               <a
                 href="#forgot"
-                style={{ pointerEvents: submitting ? "none" : "auto", opacity: submitting ? 0.5 : 1 }}
                 onClick={(e) => {
                   e.preventDefault();
                   setForgotMode(true);
@@ -176,8 +240,8 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
               </a>
             </div>
 
-            <button type="submit" className="login-btn" disabled={submitting}>
-              {submitting ? "Authenticating..." : "Login"}
+            <button type="submit" className="login-btn" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
             </button>
           </form>
         )}
@@ -185,11 +249,7 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
         {!forgotMode && (
           <p className="signup-text">
             Don't have an account?{" "}
-            <span 
-              className="signup-link" 
-              style={{ cursor: submitting ? "not-allowed" : "pointer" }}
-              onClick={!submitting ? onSwitchToSignup : undefined}
-            >
+            <span className="signup-link" onClick={onSwitchToSignup}>
               Sign up
             </span>
           </p>
@@ -200,3 +260,6 @@ const LoginPage = ({ onClose, onSwitchToSignup }) => {
 };
 
 export default LoginPage;
+
+
+

@@ -1,162 +1,248 @@
-import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth.js";
-import { apiRequest } from "../../utils/api.js";
+import { useState, useEffect } from "react";
+import logo1 from "../../assets/logo1.png";
+import logo2 from "../../assets/logo2.png";
+import logo3 from "../../assets/logo3.png";
 import "./LandingPage.css";
+import API_BASE from "../../services/api";
 
-// Landing.jsx
-// Shown to a logged-in REGULAR user right after login (admins skip this
-// and go straight to /admin — that redirect decision belongs in your
-// PostLoginRedirect / ProtectedRoute logic, not in this file).
-//
-// Job of this page: welcome the user, give them one clear next step —
-// go to their dashboard to view and pay their batch fund contribution.
+
+const MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
 
 export default function Landing() {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
-    const [profile, setProfile] = useState(null);
-    const [activeCampaigns, setActiveCampaigns] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [displayName, setDisplayName] = useState("there");
+    const [lastPaidMonth, setLastPaidMonth] = useState("Loading...");
+    const [announcement, setAnnouncement] = useState({ title: "", content: "No announcements at this time." });
+    const [statusValue, setStatusValue] = useState({ amount: 0, text: "Loading...", type: "zero" });
 
     useEffect(() => {
-        const loadLandingData = async () => {
-            if (!user) {
-                setLoading(false);
-                return;
-            }
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-            try {
-                setError('');
-                const [verifiedProfile, campaignResponse] = await Promise.all([
-                    apiRequest('/api/auth/verify', { method: 'POST' }),
-                    apiRequest('/api/campaigns', { method: 'GET' })
-                ]);
-
-                setProfile(verifiedProfile?.user || null);
-                setActiveCampaigns(Array.isArray(campaignResponse?.campaigns) ? campaignResponse.campaigns : []);
-            } catch (requestError) {
-                console.error('Landing page data load failed:', requestError);
-                setError(requestError.message || 'Failed to load your landing page data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadLandingData();
-    }, [user]);
-
-    const displayName = useMemo(() => {
-        const fallbackName = user?.displayName || user?.email?.split('@')[0] || 'Member';
-        return profile?.name || fallbackName;
-    }, [profile, user]);
-
-    const activeCampaign = activeCampaigns[0] || null;
-    const targetGoal = Number(activeCampaign?.targetGoal || 0);
-    const collectedAmount = Number(activeCampaign?.currentCollected || 0);
-    const collectionProgress = targetGoal > 0 ? Math.min(100, Math.round((collectedAmount / targetGoal) * 100)) : 0;
-    const paymentDueDate = activeCampaign?.endDate
-        ? new Date(activeCampaign.endDate).toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
+        // 1. Fetch Profile
+        fetch(`${API_BASE}/api/auth/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
         })
-        : 'No active deadline';
-    const activeBatchLabel = activeCampaign?.title || 'Batch fund campaign';
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data?.user?.name) setDisplayName(data.user.name);
+            })
+            .catch(() => { });
 
-    const handleGoToDashboard = () => {
-        navigate("/member");
-    };
+        // 2. Fetch Slip History & Calculate Status & Last Paid Month
+        fetch(`${API_BASE}/api/slips/my`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data?.payments) {
+                    const approvedMonths = [];
+                    data.payments.forEach((p) => {
+                        if (p.status === "approved") {
+                            p.monthsCovered?.forEach((m) => {
+                                approvedMonths.push(m);
+                            });
+                        }
+                    });
 
-    const handleLogout = async () => {
-        if (logout) {
-            await logout();
-        }
-        navigate("/");
-    };
+                    // A. Calculate Last Paid Month
+                    if (approvedMonths.length > 0) {
+                        approvedMonths.sort((a, b) => {
+                            if (a.year !== b.year) return b.year - a.year;
+                            return b.month - a.month;
+                        });
+                        const latest = approvedMonths[0];
+                        setLastPaidMonth(`${latest.year} ${MONTH_NAMES[latest.month - 1]}`);
+                    } else {
+                        setLastPaidMonth("None");
+                    }
+
+                    // B. Calculate Status Dues
+                    const uniqueApproved = new Set(approvedMonths.map(m => `${m.year}-${m.month}`));
+                    const paidCount = uniqueApproved.size;
+
+                    const now = new Date();
+                    const currentYear = now.getFullYear();
+                    const currentMonthIndex = now.getMonth() + 1; // 1-12
+
+                    // Calculate due months count since Jan 2026
+                    let dueMonthsCount = currentMonthIndex;
+                    if (currentYear > 2026) {
+                        dueMonthsCount = 12;
+                    } else if (currentYear < 2026) {
+                        dueMonthsCount = 0;
+                    }
+
+                    const diff = paidCount - dueMonthsCount;
+                    if (diff === 0) {
+                        setStatusValue({ amount: 0, text: "0 RS", type: "zero" });
+                    } else if (diff > 0) {
+                        setStatusValue({ amount: diff * 250, text: `+${diff * 250} RS`, type: "advance" });
+                    } else {
+                        setStatusValue({ amount: diff * 250, text: `-${Math.abs(diff) * 250} RS`, type: "arrears" });
+                    }
+                } else {
+                    setLastPaidMonth("None");
+                    setStatusValue({ amount: 0, text: "0 RS", type: "zero" });
+                }
+            })
+            .catch(() => {
+                setLastPaidMonth("None");
+                setStatusValue({ amount: 0, text: "0 RS", type: "zero" });
+            });
+
+        // 3. Fetch Notifications & Announcements
+        const headers = { Authorization: `Bearer ${token}` };
+        fetch(`${API_BASE}/api/user/notifications`, { headers })
+            .then(res => res.ok ? res.json() : null)
+            .then(notifData => {
+                const unreadReminder = (notifData?.notifications || []).find(n => n.type === "reminder" && !n.read);
+                if (unreadReminder) {
+                    setAnnouncement({
+                        title: "⚠️ Payment Reminder",
+                        content: unreadReminder.content || ""
+                    });
+                } else {
+                    fetch(`${API_BASE}/api/user/announcements`, { headers })
+                        .then(res => res.ok ? res.json() : null)
+                        .then(annData => {
+                            if (annData?.announcements && annData.announcements.length > 0) {
+                                const latest = annData.announcements[0];
+                                setAnnouncement({ title: latest.title, content: latest.content || "" });
+                            } else {
+                                setAnnouncement({ title: "", content: "No announcements at this time." });
+                            }
+                        })
+                        .catch(() => {
+                            setAnnouncement({ title: "", content: "No announcements at this time." });
+                        });
+                }
+            })
+            .catch(() => {
+                fetch(`${API_BASE}/api/user/announcements`, { headers })
+                    .then(res => res.ok ? res.json() : null)
+                    .then(annData => {
+                        if (annData?.announcements && annData.announcements.length > 0) {
+                            const latest = annData.announcements[0];
+                            setAnnouncement({ title: latest.title, content: latest.content || "" });
+                        } else {
+                            setAnnouncement({ title: "", content: "No announcements at this time." });
+                        }
+                    })
+                    .catch(() => {
+                        setAnnouncement({ title: "", content: "No announcements at this time." });
+                    });
+            });
+
+    }, []);
 
     return (
         <div className="landing-page">
-            <header className="landing-header">
-                <div className="landing-brand">
-                    <span className="landing-brand-mark">●</span>
-                    <span className="landing-brand-name">Batch Fund</span>
-                </div>
-                <button className="landing-logout" onClick={handleLogout}>
-                    Log out
+            {/* Top Navigation */}
+            <nav className="home-nav">
+                <button className="nav-btn active-btn" onClick={() => navigate("/landing")}>Home</button>
+                <button className="nav-btn" onClick={() => navigate("/about")}>About</button>
+                <button className="nav-btn" onClick={() => navigate("/member")}>
+                    Dashboard
                 </button>
-            </header>
+            </nav>
 
             <main className="landing-main">
-                <section className="landing-hero">
-                    <div className="landing-hero-glow" aria-hidden="true"></div>
-                    <svg
-                        className="landing-hero-line"
-                        viewBox="0 0 400 120"
-                        preserveAspectRatio="none"
-                        aria-hidden="true"
-                    >
-                        <path
-                            d="M0,100 C60,90 90,60 140,55 C190,50 210,80 260,65 C310,50 330,20 400,10"
-                            fill="none"
-                            stroke="url(#lineGradient)"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                        />
-                        <defs>
-                            <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-                                <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
-                                <stop offset="100%" stopColor="rgba(255,255,255,0.9)" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
+                <div className="landing-two-col">
+                    {/* ── Left: hero card ── */}
+                    <section className="landing-hero">
+                        <div className="landing-hero-glow" aria-hidden="true"></div>
+                        <svg
+                            className="landing-hero-line"
+                            viewBox="0 0 400 120"
+                            preserveAspectRatio="none"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M0,100 C60,90 90,60 140,55 C190,50 210,80 260,65 C310,50 330,20 400,10"
+                                fill="none"
+                                stroke="url(#lineGradient)"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                            />
+                            <defs>
+                                <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
+                                    <stop offset="100%" stopColor="rgba(255,255,255,0.9)" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
 
-                    <p className="landing-eyebrow">Welcome back</p>
-                    <h1 className="landing-title">
-                        {loading ? 'Loading your account...' : `Hi ${displayName},`}
-                    </h1>
-                    <p className="landing-subtitle">
-                        {error
-                            ? error
-                            : 'Your batch fund group is moving forward. Head to your dashboard to check your contribution status or make a payment.'}
-                    </p>
+                        <p className="landing-eyebrow">Welcome back</p>
+                        <h1 className="landing-title">Hi {displayName},</h1>
+                        <p className="landing-subtitle">
+                            Your batch fund group is moving forward. Head to your dashboard
+                            to check your contribution status or make a payment.
+                        </p>
 
-                    <div className="landing-cta-group" style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center" }}>
-                        <button className="landing-cta" onClick={handleGoToDashboard}>
-                            Go to my dashboard
-                            <span className="landing-cta-arrow">→</span>
-                        </button>
-                        <button className="landing-cta landing-cta-secondary" onClick={() => navigate("/pay-fund")}>
-                            Pay Fund
-                            <span className="landing-cta-arrow">→</span>
-                        </button>
-                    </div>
-                </section>
+                        <div className="landing-cta-group">
+                            <button className="landing-cta" onClick={() => navigate("/member")}>
+                                Go to my dashboard
+                                <span className="landing-cta-arrow">→</span>
+                            </button>
+                            <button className="landing-cta landing-cta-secondary" onClick={() => navigate("/pay-fund")}>
+                                Pay Fund
+                                <span className="landing-cta-arrow">→</span>
+                            </button>
+                        </div>
+                    </section>
 
-                <section className="landing-glance" aria-label="Quick glance">
-                    <div className="landing-chip">
-                        <span className="landing-chip-label">Active batch</span>
-                        <span className="landing-chip-value">{activeBatchLabel}</span>
-                    </div>
-                    <div className="landing-chip">
-                        <span className="landing-chip-label">Next payment due</span>
-                        <span className="landing-chip-value">{paymentDueDate}</span>
-                    </div>
-                    <div className="landing-chip">
-                        <span className="landing-chip-label">Contributed so far</span>
-                        <span className="landing-chip-value">
-                            Rs. {collectedAmount.toLocaleString()}
-                            <span style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: 'var(--landing-text-muted)' }}>
-                                {collectionProgress}% of Rs. {targetGoal.toLocaleString() || '0'}
-                            </span>
-                        </span>
-                    </div>
-                </section>
+                    {/* ── Right: stacked cards with content ── */}
+                    <div className="landing-logo-stack">
+                        {/* Card 1: Last Paid Month */}
+                        <div className="landing-logo-card">
+                            <div className="landing-logo-circle">
+                                <img src={logo1} alt="Last Payed Month" className="landing-logo-img" />
+                            </div>
+                            <div className="landing-logo-content">
+                                <h4 className="landing-card-header">Last Payed Month</h4>
+                                <p className="landing-card-value">{lastPaidMonth}</p>
+                            </div>
+                        </div>
 
-                <p className="landing-footnote">
-                    Figures are sourced from your verified session and the active campaign ledger.
-                </p>
+                        {/* Card 2: Announcements */}
+                        <div className="landing-logo-card">
+                            <div className="landing-logo-circle">
+                                <img src={logo2} alt="Announcements" className="landing-logo-img" />
+                            </div>
+                            <div className="landing-logo-content">
+                                <h4 className="landing-card-header">Announcements</h4>
+                                {announcement.title ? (
+                                    <>
+                                        <p className="landing-card-value announcement-text" style={{ fontWeight: '700', marginBottom: '0.2rem' }}>{announcement.title}</p>
+                                        {announcement.content && (
+                                            <p className="landing-card-value announcement-text" style={{ fontSize: '0.82em', opacity: 0.8, marginTop: 0 }}>{announcement.content}</p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p className="landing-card-value announcement-text">{announcement.content}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Card 3: Status */}
+                        <div className="landing-logo-card">
+                            <div className="landing-logo-circle">
+                                <img src={logo3} alt="Status" className="landing-logo-img" />
+                            </div>
+                            <div className="landing-logo-content">
+                                <h4 className="landing-card-header">Status</h4>
+                                <p className={`landing-card-value status-value ${statusValue.type}`}>
+                                    {statusValue.text}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     );

@@ -1,53 +1,34 @@
-// backend/src/config/firebase.js
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import admin from 'firebase-admin';
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
+import admin from "firebase-admin";
 
-// Ensure environment variables are loaded
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+dotenv.config({ path: resolve(__dirname, '../../.env') })
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
-
-const createCredential = () => {
-  // Strategy 1: Look for local serviceAccountKey.json file first
-  if (fs.existsSync(serviceAccountPath)) {
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-    return admin.credential.cert(serviceAccount);
-  }
-
-  // Strategy 2: Fallback to environment variables for Docker containers & CI/CD deployment
-  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
-    return admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: privateKey,
-    });
-  }
-
-  throw new Error(
-    'Firebase Admin credentials are not configured. Missing src/config/serviceAccountKey.json file or fallback environment variables.'
-  );
+const cleanEnvVar = (val) => {
+  if (!val) return val;
+  return val.replace(/^["']|["']$/g, '').trim();
 };
 
-if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-      credential: createCredential(),
-    });
-    console.log('Successfully initialized Firebase Admin SDK (Hybrid Local/Env Setup).');
-  } catch (error) {
-    console.error('Error initializing Firebase Admin SDK:', error.message);
-    throw error;
-  }
-}
+const projectId = cleanEnvVar(process.env.FIREBASE_PROJECT_ID);
+const clientEmail = cleanEnvVar(process.env.FIREBASE_CLIENT_EMAIL);
+const storageBucket = cleanEnvVar(process.env.FIREBASE_STORAGE_BUCKET) || `${projectId}.firebasestorage.app`;
+const privateKey = process.env.FIREBASE_PRIVATE_KEY
+  ? cleanEnvVar(process.env.FIREBASE_PRIVATE_KEY).replace(/\\n/g, "\n")
+  : undefined;
 
-export const db = admin.firestore();
-export const auth = admin.auth();
-export const verifyIdToken = (token) => auth.verifyIdToken(token);
-export const canUseFirestore = () => admin.apps.length > 0;
+admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: projectId,
+    clientEmail: clientEmail,
+    privateKey: privateKey,
+  }),
+  storageBucket: storageBucket,
+});
+
+const db = admin.firestore();
+
+export { admin, db };
 export default admin;
