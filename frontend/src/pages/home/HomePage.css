@@ -288,6 +288,15 @@
     max-width: 95vw;
   }
 
+  .image2-wrapper {
+    right: 20px;
+  }
+
+  .image2 {
+    width: 260px;
+    max-width: 65vw;
+  }
+
   .heading-about {
     font-size: 4rem;
   }
@@ -334,6 +343,15 @@
 
   .home-image {
     max-width: 98vw;
+  }
+
+  .image2-wrapper {
+    right: 10px;
+  }
+
+  .image2 {
+    width: 200px;
+    max-width: 70vw;
   }
 
   .heading-about {
