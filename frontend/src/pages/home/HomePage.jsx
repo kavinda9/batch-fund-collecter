@@ -80,14 +80,14 @@ const HomePage = () => {
       <div className="parallax-layer">
         <div
           className="heading-batch-fund"
-          style={{ transform: `translateX(${heroSlide}vw)`, opacity: heroFade }}
+          style={{ transform: `translateX(calc(-50% + ${heroSlide}vw))`, opacity: heroFade }}
         >
           Batch Fund
         </div>
 
         <div
           className="heading-collector"
-          style={{ transform: `translateX(${heroSlide}vw)`, opacity: heroFade }}
+          style={{ transform: `translateX(calc(-50% + ${heroSlide}vw))`, opacity: heroFade }}
         >
           Collector
         </div>

@@ -83,13 +83,13 @@
 .heading-batch-fund {
   position: absolute;
   top: 18%;
-  left: 30%;
+  left: 50%;
   font-family: "FrontFont", sans-serif;
   font-size: 10rem;
   font-weight: bold;
   color: #ffffff;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  text-align: left;
+  text-align: center;
   will-change: transform, opacity;
   white-space: nowrap;
 }
@@ -97,13 +97,13 @@
 .heading-collector {
   position: absolute;
   top: 40%;
-  left: 53%;
+  left: 50%;
   font-family: "FrontFont", sans-serif;
   font-size: 8rem;
   font-weight: bold;
   color: #ffffff;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  text-align: left;
+  text-align: center;
   will-change: transform, opacity;
   white-space: nowrap;
 }
@@ -241,25 +241,21 @@
 @media (max-width: 1200px) {
   .heading-batch-fund {
     font-size: 8rem;
-    left: 20%;
   }
 
   .heading-collector {
     font-size: 6.5rem;
-    left: 45%;
   }
 }
 
 @media (max-width: 992px) {
   .heading-batch-fund {
     font-size: 6rem;
-    left: 15%;
     top: 20%;
   }
 
   .heading-collector {
     font-size: 5rem;
-    left: 40%;
     top: 38%;
   }
 
@@ -276,13 +272,11 @@
 @media (max-width: 768px) {
   .heading-batch-fund {
     font-size: 4.5rem;
-    left: 10%;
     top: 24%;
   }
 
   .heading-collector {
     font-size: 3.8rem;
-    left: 30%;
     top: 37%;
   }
 
@@ -326,13 +320,11 @@
 @media (max-width: 480px) {
   .heading-batch-fund {
     font-size: 3.2rem;
-    left: 8%;
     top: 27%;
   }
 
   .heading-collector {
     font-size: 2.6rem;
-    left: 20%;
     top: 37%;
   }
 
