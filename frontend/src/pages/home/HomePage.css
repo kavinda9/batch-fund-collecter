@@ -277,13 +277,21 @@
   .heading-batch-fund {
     font-size: 4.5rem;
     left: 10%;
-    top: 22%;
+    top: 24%;
   }
 
   .heading-collector {
     font-size: 3.8rem;
     left: 30%;
-    top: 36%;
+    top: 37%;
+  }
+
+  .home-image-wrapper {
+    bottom: 8%;
+  }
+
+  .home-image {
+    max-width: 95vw;
   }
 
   .heading-about {
@@ -319,13 +327,21 @@
   .heading-batch-fund {
     font-size: 3.2rem;
     left: 8%;
-    top: 25%;
+    top: 27%;
   }
 
   .heading-collector {
     font-size: 2.6rem;
     left: 20%;
-    top: 36%;
+    top: 37%;
+  }
+
+  .home-image-wrapper {
+    bottom: 12%;
+  }
+
+  .home-image {
+    max-width: 98vw;
   }
 
   .heading-about {
