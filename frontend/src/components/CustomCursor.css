@@ -1,0 +1,70 @@
+/* Base custom cursor styling */
+.custom-cursor-dot,
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none; /* Crucial so cursor doesn't block click events! */
+  z-index: 99999;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s, opacity 0.15s;
+}
+
+/* Inner dot */
+.custom-cursor-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #7c3aed; /* Violet primary theme color */
+  margin-top: -4px;
+  margin-left: -4px;
+}
+
+/* Outer ring */
+.custom-cursor-ring {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(124, 58, 237, 0.4);
+  margin-top: -18px;
+  margin-left: -18px;
+}
+
+/* Hovering over clickable items states */
+.custom-cursor-dot.hovering {
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  margin-left: -2px;
+  background-color: #a855f7;
+}
+
+.custom-cursor-ring.hovering {
+  width: 52px;
+  height: 52px;
+  margin-top: -26px;
+  margin-left: -26px;
+  border-color: #7c3aed;
+  background-color: rgba(124, 58, 237, 0.08);
+}
+
+/* Hidden state (when mouse leaves window) */
+.custom-cursor-dot.hidden,
+.custom-cursor-ring.hidden {
+  opacity: 0;
+}
+
+/* Hide custom cursor and hide system cursor on desktop mouse pointers */
+@media (pointer: fine) {
+  html, body, button, a, [role="button"], .glass-card, .btn, .nav-btn {
+    cursor: none !important;
+  }
+}
+
+/* Ensure touch pointer devices are unaffected */
+@media (pointer: coarse) {
+  .custom-cursor-dot,
+  .custom-cursor-ring {
+    display: none !important;
+  }
+}

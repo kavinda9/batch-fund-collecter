@@ -7,10 +7,12 @@ import MemberDashboard from './pages/member/MemberDashboard';
 import Landing from './pages/contribution/LandingPage';
 import PayFund from './pages/contribution/PayFund';
 import AboutPage from './pages/about/AboutPage';
+import CustomCursor from './components/CustomCursor';
 
 function App() {
   return (
     <Router>
+      <CustomCursor />
       <Routes>
         {/* Your original home page */}
         <Route path="/" element={<HomePage />} />
