@@ -228,22 +228,39 @@ const RegisterPage = ({ onClose, onSwitchToLogin }) => {
 
           {/* Degree Program */}
           <div className="input-group">
-            <label>Degree Program</label>
-            <input
-              type="text"
-              name="degreeProgram"
-              placeholder="e.g. BSc Computer Science"
-              value={formData.degreeProgram}
-              onChange={handleChange}
-              style={{
-                backgroundColor: formData.degreeProgram ? "#5ced73" : undefined,
-                color: formData.degreeProgram ? "#1a1a2e" : undefined
-              }}
-            />
-            {errors.degreeProgram && (
-              <span className="error">{errors.degreeProgram}</span>
-            )}
-          </div>
+          <label>Degree Program</label>
+          <select
+            name="degreeProgram"
+            value={formData.degreeProgram}
+            onChange={handleChange}
+            className={formData.degreeProgram === "" ? "select-placeholder" : ""}
+            style={{
+              backgroundColor: formData.degreeProgram ? "#5ced73" : undefined,
+              color: formData.degreeProgram ? "#1a1a2e" : undefined
+            }}
+          >
+            <option value="" disabled>
+              Select your degree program
+            </option>
+
+            <option value="Software Engineering">
+              Software Engineering
+            </option>
+
+            <option value="Computer Science">
+              Computer Science
+            </option>
+
+            <option value="Information Systems">
+              Information Systems
+            </option>
+          </select>
+
+          {errors.degreeProgram && (
+            <span className="error">{errors.degreeProgram}</span>
+          )}
+        </div>
+                  
 
           {/* Batch */}
           <div className="input-group">
