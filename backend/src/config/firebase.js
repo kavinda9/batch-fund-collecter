@@ -77,6 +77,9 @@ if (process.env.NODE_ENV === 'test') {
   const privateKey = process.env.FIREBASE_PRIVATE_KEY
     ? cleanEnvVar(process.env.FIREBASE_PRIVATE_KEY).replace(/\\n/g, "\n")
     : undefined;
+    console.log("PROJECT:", projectId);
+    console.log("EMAIL:", clientEmail);
+    console.log("KEY:", privateKey ? "Loaded" : "Missing");
 
   admin.initializeApp({
     credential: admin.credential.cert({
