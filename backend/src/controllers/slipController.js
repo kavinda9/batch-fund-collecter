@@ -37,6 +37,35 @@ const uploadSlip = async (req, res) => {
       });
     }
 
+    // Check if user already submitted payments for selected months
+    const existingPayments = await db
+      .collection("payments")
+      .where("uid", "==", req.user.uid)
+      .get();
+
+    const alreadySubmittedMonths = [];
+
+    existingPayments.forEach((doc) => {
+      const payment = doc.data();
+
+      if (payment.status !== "rejected") {
+        payment.monthsCovered?.forEach((month) => {
+          if (parsedMonths.includes(month)) {
+            alreadySubmittedMonths.push(month);
+          }
+        });
+      }
+    });
+
+    if (alreadySubmittedMonths.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Payment already submitted for: ${[
+          ...new Set(alreadySubmittedMonths),
+        ].join(", ")}`,
+      });
+    }
+
     // Fetch user profile from Firestore so we can store name/email on the record
     const uid = req.user.uid;
     const userDoc = await db.collection("users").doc(uid).get();
