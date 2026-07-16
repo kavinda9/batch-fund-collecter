@@ -236,3 +236,133 @@
   color: #ffffff;
   letter-spacing: 0.02em;
 }
+
+/* ── Responsive Design (Mobile / Tablet) ────────────────── */
+@media (max-width: 1200px) {
+  .heading-batch-fund {
+    font-size: 8rem;
+    left: 20%;
+  }
+
+  .heading-collector {
+    font-size: 6.5rem;
+    left: 45%;
+  }
+}
+
+@media (max-width: 992px) {
+  .heading-batch-fund {
+    font-size: 6rem;
+    left: 15%;
+    top: 20%;
+  }
+
+  .heading-collector {
+    font-size: 5rem;
+    left: 40%;
+    top: 38%;
+  }
+
+  .heading-about {
+    font-size: 5rem;
+  }
+
+  .home-nav {
+    gap: 32px;
+    right: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .heading-batch-fund {
+    font-size: 4.5rem;
+    left: 10%;
+    top: 22%;
+  }
+
+  .heading-collector {
+    font-size: 3.8rem;
+    left: 30%;
+    top: 36%;
+  }
+
+  .heading-about {
+    font-size: 4rem;
+  }
+
+  .home-nav {
+    gap: 20px;
+    right: 20px;
+    top: 16px;
+  }
+
+  .nav-btn {
+    font-size: 18px;
+    padding: 8px 16px;
+  }
+
+  .about-section {
+    padding-top: 25vh;
+    padding-bottom: 15vh;
+  }
+
+  .about-content {
+    padding: 0 24px;
+  }
+
+  .about-mission-title {
+    font-size: 2.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heading-batch-fund {
+    font-size: 3.2rem;
+    left: 8%;
+    top: 25%;
+  }
+
+  .heading-collector {
+    font-size: 2.6rem;
+    left: 20%;
+    top: 36%;
+  }
+
+  .heading-about {
+    font-size: 3rem;
+  }
+
+  .home-nav {
+    gap: 10px;
+    right: 10px;
+    top: 10px;
+  }
+
+  .nav-btn {
+    font-size: 15px;
+    padding: 6px 10px;
+  }
+
+  .about-mission-title {
+    font-size: 2.2rem;
+  }
+
+  .about-mission-desc {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .contact-text {
+    font-size: 1.1rem;
+  }
+
+  .contact-icon-circle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .contact-svg {
+    width: 18px;
+    height: 18px;
+  }
+}
